@@ -11,9 +11,10 @@ class FavoriteAlphas:
         if len(alphas) == 0:
             return
 
+        batch_num = 1
         for i in range(0,len(alphas),20):
             list = alphas[i:i+20]
-            batch_num = i+1
+            batch_num += 1
             print(f"正在检查第{batch_num}批{len(list)} 个Alpha...")
             favorable_data = []
             for alpha in list:

@@ -59,25 +59,27 @@ def main():
             )
             # 模拟 Alpha
             _simulator.simulate_alphas()
-        elif mode == 3:
-            # 收藏Alpha
-            favorite.FavoriteAlphas(brain=brain).add_favorite()
         else:
             brain = ml.WorldQuantBrain(
                 credentials_file=credentials
             )
-            # 生成数据集文件
-            out_put_path = str(input("\n请输入保存文件路径(默认: ./datasetFile): "))
-            if out_put_path == "":
-                out_put_path = "./datasetFile"
-            _export = export.ExportFiles(
-                brain=brain
-                , out_put_path=out_put_path
-            )
-            if mode == 2:
-                _export.generate()
+            if mode == 3:
+                # 收藏Alpha
+                favorite.FavoriteAlphas(brain=brain).add_favorite()
             else:
-                _export.export_submitted_alphas()
+                
+                # 生成数据集文件
+                out_put_path = str(input("\n请输入保存文件路径(默认: ./datasetFile): "))
+                if out_put_path == "":
+                    out_put_path = "./datasetFile"
+                _export = export.ExportFiles(
+                    brain=brain
+                    , out_put_path=out_put_path
+                )
+                if mode == 2:
+                    _export.generate()
+                else:
+                    _export.export_submitted_alphas()
                 
 
     except Exception as e:

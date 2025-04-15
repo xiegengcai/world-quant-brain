@@ -493,5 +493,8 @@ class WorldQuantBrain:
             return self.is_favorable(alpha_id)
         score = resp.json()['score']
         is_favorable = score['after']>score['before']
-        print(f"✅ Alpha {alpha_id} 是否可收藏: {is_favorable}")
+        if is_favorable:
+            print(f"✅ Alpha {alpha_id} 可收藏.....")
+        else:
+            print(f"❌ Alpha {alpha_id} 不可收藏.....")
         return is_favorable

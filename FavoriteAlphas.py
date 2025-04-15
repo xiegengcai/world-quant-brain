@@ -25,7 +25,7 @@ class FavoriteAlphas:
                     })
                 
             if len(favorable_data) == 0:
-                print(f"第{batch_num}批{len(list)} Alpha个没有可以收藏的...")
+                print(f"第{batch_num}批{len(list)} 个Alpha没有可以收藏的...")
                 continue
             print(f"正在添加第第{batch_num}批{len(favorable_data)} 个alpha到收藏夹...")
             try:

@@ -188,9 +188,13 @@ class WorldQuantBrain:
         alpha_list = []
         try:
         
+            
             while True:
                 resp = self.session.get(f'{self.base_url}{url}&offset={offset}')
                 data = resp.json()
+                # 打印一次
+                if offset == 0:
+                    print(f"共有 Alpha: {data['count']} 条")
                 if data['count'] == 0:
                     break
                 # 成功获取数据

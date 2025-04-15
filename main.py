@@ -64,8 +64,12 @@ def main():
                 credentials_file=credentials
             )
             if mode == 3:
+                alpha_num = int(input("\n请输入最大收藏Alpha数量(默认: 200):"))
                 # 收藏Alpha
-                favorite.FavoriteAlphas(brain=brain).add_favorite()
+                _favorite = favorite.FavoriteAlphas(brain=brain)
+                if alpha_num == 0:
+                    alpha_num = 200
+                _favorite.add_favorite(alpha_num)
             else:
                 
                 # 生成数据集文件

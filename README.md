@@ -2,8 +2,7 @@
 
 ## 介绍
 
-WorldQuantBrain平台API封装及Alpha模拟回测
-
+使用[wqb](https://github.com/rocky-d/wqb/)框架搭建的[WorldQuant BRAIN](https://platform.worldquantbrain.com/)工具
 ## 使用说明
 
 ```bash

@@ -5,3 +5,4 @@ __pycache__/
 *.log
 available_alphas/*
 datasetFile/*
+results/*

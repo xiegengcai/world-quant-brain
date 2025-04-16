@@ -1,26 +1,38 @@
-# 登录
-import argparse
+# -*- coding: utf-8 -*-
 
 import glob
 import json
 import os
-from os.path import expanduser
-from pathlib import Path
 import time
-
-import machine_lib as ml
+import wqb
 
 class ExportFiles:
 
-    def __init__(self, brain: ml.WorldQuantBrain, out_put_path: str):
+    def __init__(self, wqbs:wqb.WQBSession, out_put_path: str):
+        self.wqbs = wqbs
         self.out_put_path = out_put_path
-        self.brain = brain
-
+        self.searchScope = {'region': 'USA', 'delay': 1, 'universe': 'TOP3000'}
     def generate_datasets_file(self):
 
         print(f"正在生成数据集文件...")
-        datasets_info = self.brain.data_sets()
-    
+        resp = self.wqbs.search_datasets_limited(
+            region=self.searchScope['region'],
+            delay=self.searchScope['delay'],
+            universe=self.searchScope['universe'],
+            limit=10000,
+            log='search_datasets_limited',
+        )
+        results = resp.json()['results']
+        # 提取id,name,description,subcategory
+        datasets_info = {
+            item["id"]: {
+                "name": item["name"],
+                "description": item["description"],
+                "category": item["category"]["name"],
+                "subcategory": item["subcategory"]["name"]  # 提取子类名称
+            }
+            for item in results
+        }
 
         for item_id, item_data in datasets_info.items():
             id = item_id
@@ -49,28 +61,26 @@ class ExportFiles:
             cs = f"{Category}/{Subcategory}"
 
 
-            searchScope = {'region': 'USA', 'delay': '1', 'universe': 'TOP3000', 'instrumentType': 'EQUITY'}
-            data_fields = self.brain.data_fields(searchScope=searchScope, dataset_id=id)
+            
+            field_resp = self.wqbs.search_fields_limited(
+                region=self.searchScope['region'],
+                delay=self.searchScope['delay'],
+                universe=self.searchScope['universe'],
+                dataset_id=id,
+                log='search_fields_limited',
+                limit=10000
+            )
+            data_fields = field_resp.json()['results']
             stats_table = "| Region | Delay | Universe |\n"
             stats_table += "|----|-------------|------|\n"
-            stats_table += f"| {searchScope['region']} | {searchScope['delay']} | {searchScope['universe']} |\n"
+            stats_table += f"| {self.searchScope['region']} | {self.searchScope['delay']} | {self.searchScope['universe']} |\n"
 
-            datafields_id = []
-            datafields_description = []
-            datafields_type = []
-            datafields_list_flat = [item for sublist in data_fields for item in sublist]
-            for i in range(len(datafields_list_flat)):  # 0 到 100
-                datafields_id.append(datafields_list_flat[i]['id'])
-                datafields_description.append(datafields_list_flat[i]['description'])
-                datafields_type.append(datafields_list_flat[i]['type'])
-            # Create Markdown table
+
             markdown_table = "| id | description | type |\n"
             markdown_table += "|----|-------------|------|\n"
-            for i in range(len(datafields_id)):
-                id = datafields_id[i]
-                description = datafields_description[i]
-                type = datafields_type[i]
-                markdown_table += f"| {id} | {description} | {type} |\n"
+
+            for field in data_fields:
+                markdown_table += f"| {field['id']} | {field['description']} | {field['type']} |\n"
 
             filename = f"{self.out_put_path}/{name}.md"
             with open(filename, "w", encoding="utf-8") as f:
@@ -84,7 +94,8 @@ class ExportFiles:
 
     def generate_operators_file(self):
         print(f"正在生成 Operators.md 文件...")
-        operators = self.brain.get_operators()
+        resp = self.wqbs.search_operators(log='operators')
+        operators = resp.json()
         
         with open(f'{self.out_put_path}/Operators.md', 'w', encoding="utf-8") as f:
             f.write('|Name|Category|Scope|Definition|Description|Level|\n')
@@ -96,12 +107,27 @@ class ExportFiles:
 
     def generate_alphas_file(self):
         print(f"正在生成 SubmittedAlphas.md 文件...")
-        alphas = self.brain.get_alphas(status="ACTIVE")
+
+        alphas = self.get_active_alphas()
+        if len(alphas) == 0:
+            print("没有Alpha可以生成...")
+
         submitted_path = f'{self.out_put_path}/SubmittedAlphas.md'
         with open(submitted_path, 'w', encoding="utf-8") as f:
             for alpha in alphas:
                 f.write(f'```python\n{alpha["regular"]['code']}\n```\n')
         print(f"SubmittedAlphas.md 文件生成 完成...")
+
+    def get_active_alphas(self):
+        resp = self.wqbs.filter_alphas_limited(
+            status='ACTIVE',
+            region=self.searchScope['region'],
+            delay=self.searchScope['delay'],
+            universe=self.searchScope['universe'],
+            log='search_alphas'
+            , limit=10000
+        )
+        return resp.json()['results']
 
     def export_submitted_alphas(self):
         print(f"正在导出已提交的Alpha...")
@@ -109,7 +135,7 @@ class ExportFiles:
         for file in json_files:
             os.remove(file)
 
-        list = self.brain.get_alphas(status="ACTIVE")
+        list = self.get_active_alphas()
         if len(list) == 0:
             print("没有Alpha可以导出...")
             return

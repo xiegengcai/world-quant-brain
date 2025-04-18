@@ -20,7 +20,7 @@ class ExportFiles:
             delay=self.searchScope['delay'],
             universe=self.searchScope['universe'],
             limit=10000,
-            log='search_datasets_limited',
+            log='ExportFiles#generate_datasets_file',
         )
         results = resp.json()['results']
         # 提取id,name,description,subcategory
@@ -67,7 +67,7 @@ class ExportFiles:
                 delay=self.searchScope['delay'],
                 universe=self.searchScope['universe'],
                 dataset_id=id,
-                log='search_fields_limited',
+                log='ExportFiles#generate_datasets_file',
                 limit=10000
             )
             data_fields = field_resp.json()['results']
@@ -115,7 +115,7 @@ class ExportFiles:
         submitted_path = f'{self.out_put_path}/SubmittedAlphas.md'
         with open(submitted_path, 'w', encoding="utf-8") as f:
             for alpha in alphas:
-                f.write(f'```python\n{alpha["regular"]['code']}\n```\n')
+                f.write(f'```python\n{alpha["regular"]["code"]}\n```\n')
         print(f"SubmittedAlphas.md 文件生成 完成...")
 
     def get_active_alphas(self):
@@ -124,7 +124,7 @@ class ExportFiles:
             region=self.searchScope['region'],
             delay=self.searchScope['delay'],
             universe=self.searchScope['universe'],
-            log='search_alphas'
+            log='ExportFiles#get_active_alphas'
             , limit=10000
         )
         return resp.json()['results']

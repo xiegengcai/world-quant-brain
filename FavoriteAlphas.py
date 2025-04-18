@@ -31,7 +31,7 @@ class FavoriteAlphas:
             turnover=FilterRange.from_str('(-inf, 0.7]'),
             order='-dateCreated',
             limit=limit,
-            log='filter_alphas_limited'
+            log='FavoriteAlphas#add_favorite'
         )
         alphas = resp.json()['results']
         print(f"共找到{len(alphas)}个Alpha")

@@ -3,6 +3,8 @@ import time
 import wqb
 from wqb import FilterRange
 
+import utils
+
 class FavoriteAlphas:
     def __init__(self, wqbs:wqb.WQBSession):
         self.wqbs = wqbs
@@ -20,24 +22,13 @@ class FavoriteAlphas:
 
     
     def add_favorite(self,limit:int):
-        resp = self.wqbs.filter_alphas_limited(
-            status='UNSUBMITTED',
-            region=self.searchScope['region'],
-            delay=1,
-            favorite=False,
-            universe='TOP3000',
-            sharpe=FilterRange.from_str('[1.58, inf)'),
-            fitness=FilterRange.from_str('[1, inf)'),
-            turnover=FilterRange.from_str('(-inf, 0.7]'),
-            order='-dateCreated',
-            limit=limit,
-            log='FavoriteAlphas#add_favorite'
-        )
-        alphas = resp.json()['results']
-        print(f"共找到{len(alphas)}个Alpha")
+        """添加收藏夹"""
+        alphas = utils.submitable_alphas(wqbs=self.wqbs,limit=limit)
         if len(alphas) == 0:
             return
-
+        # 过滤
+        alphas = utils.filter_failed_alphas(alphas)
+        print(f'过滤后共 {len(alphas)} 个 Alpha 收藏...')
         batch_num = 0
         for i in range(0,len(alphas),20):
             batch_num += 1
@@ -45,7 +36,7 @@ class FavoriteAlphas:
             print(f"正在检查第{batch_num}批{len(list)} 个Alpha...")
             favorable_data = []
             for alpha in list:
-                if self.is_favorable(alpha['id']):
+                if utils.is_favorable(wqbs=self.wqbs, alpha_id=alpha['id']):
                     favorable_data.append({
                         'id':alpha['id']
                         ,'favorite':True

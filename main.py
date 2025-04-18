@@ -10,6 +10,7 @@ import AlphaMachine as machine
 import ExportFiles as export
 import FavoriteAlphas as favorite
 import utils as utils
+from AutoSubmit import AutoSubmit
 
 def run_simulator(wqbs:wqb.WQBSession):
     simulated_alphas_file = str(input("\n请输入已回测文件路径(默认: ./results/alpha_ids.txt)"))
@@ -78,20 +79,47 @@ def main():
 
         print("\n📋 请选择运行模式:")
         print("1: 模拟回测")
-        print("2: 生成数据集文件")
-        print("3: 收藏Alpha")
-        print("4: 导出已提交的Alpha")
+        print("2: 剪枝提升质量")
+        print("3: 自动提交")
+        print("4: 生成数据集文件")
+        print("5: 收藏Alpha")
+        print("6: 导出已提交的Alpha")
 
-        mode = int(input("\n请选择模式 (1-4): "))
-        if mode not in [1, 2, 3, 4]:
+        mode = int(input("\n请选择模式 (1-6): "))
+        if mode not in [1, 2, 3, 4, 5, 6]:
             print("❌ 无效的模式选择")
             return
 
         if mode == 1:
             run_simulator(wqbs=wqbs)
+        elif mode == 2:
+            print("开发中...")
+            return
+        elif mode == 3:
+            print("\n📋 请选择提交模式:")
+            print("1: 直接提交")
+            print("2: 检查排名后提交")
+            submit_mode = int(input("\n请选择提交模式 (1-2): "))
+            if submit_mode not in [1, 2]:
+                print("❌ 无效的提交模式选择")
+                return
+            improve = 10
+            checkRank = submit_mode == 2
+            if checkRank:
+                improve_str = input("\n请输入提升名次(默认: 10):")
+                if improve_str != '':
+                    improve = int(improve_str)
+
+            submit_num_str = input("\n请输入提交Alpha数量(默认: 2):") 
+            submit_num = 2
+            improve = 10
+            if submit_num_str != '':
+                submit_num = int(submit_num_str)
+
+            AutoSubmit(wqbs=wqbs, submit_num=submit_num, checkRank=checkRank, improve=improve).run()
         else:
             
-            if mode == 3:
+            if mode == 5:
                 alpha_num_str = input("\n请输入最大收藏Alpha数量(默认: 200):")
                 # 收藏Alpha
                 alpha_num = 200
@@ -109,7 +137,7 @@ def main():
                     wqbs=wqbs
                     , out_put_path=out_put_path
                 )
-                if mode == 2:
+                if mode == 4:
                     _export.generate()
                 else:
                     _export.export_submitted_alphas()

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import time
 import wqb
-from wqb import FilterRange
 
 import utils
 
-class FavoriteAlphas:
+class FavoriteAlpha:
     def __init__(self, wqbs:wqb.WQBSession):
         self.wqbs = wqbs
         self.searchScope = {'region': 'USA', 'delay': 1, 'universe': 'TOP3000'}

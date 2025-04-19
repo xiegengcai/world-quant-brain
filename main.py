@@ -1,18 +1,46 @@
 # -*- coding: utf-8 -*-
-import json
-from os.path import expanduser
+from datetime import datetime,timedelta
 
 import wqb
 
 import dataset_config
-import simulator
-import AlphaMachine as machine
-import ExportFiles as export
-import FavoriteAlphas as favorite
-import utils as utils
-from AutoSubmit import AutoSubmit
+from simulator import Simulator
+from generator import Generator
+from exports import ExportFiles
+from favorite import FavoriteAlpha
+import utils
+from submitter import Submitter
+from improvement import Improvement
 
-def run_simulator(wqbs:wqb.WQBSession):
+def run_simulator(wqbs:wqb.WQBSession, simulator:Simulator):
+
+    print("\n📋 请选择回测模式:")
+    print("1: 自动回测(按模板生成Alpha并回测)")
+    print("2: 手动回测(从目录中读取JSON并回测)")
+    simulated_mode = int(input("\n请选择模式 (1-2): "))
+    
+    if simulated_mode not in [1, 2]:
+        print("❌ 无效的模式选择")
+    if simulated_mode == 1:
+        print("\n📊 可用数据集列表:")
+        for dataset in dataset_config.get_dataset_list():
+            print(dataset)
+
+        dataset_index = input("\n请选择数据集编号: ")
+        dataset_id = dataset_config.get_dataset_by_index(dataset_index)
+        if not dataset_id:
+            print("❌ 无效的数据集编号")
+            return
+        alpha_list = Generator( wqbs=wqbs, dataset_id=dataset_id).generate()
+        simulator.simulate_alphas(alpha_list)
+
+    else:
+        available_path = str(input("\n请输入可回测 Alpha 文件路径(默认: ./available_alphas): "))
+        if available_path == "":
+            available_path = "./available_alphas"
+        simulator.simulate_with_available(available_path)
+
+def improve_or_simulate(wqbs:wqb.WQBSession, mode:int):
     simulated_alphas_file = str(input("\n请输入已回测文件路径(默认: ./results/alpha_ids.txt)"))
     if simulated_alphas_file == "":
         # available_path = "./available_alphas"
@@ -37,16 +65,10 @@ def run_simulator(wqbs:wqb.WQBSession):
         return
     print(f"已回测文件路径: {simulated_alphas_file}, 顾问:{is_consultant}, 每批次数据大小: {batch_size}")
     
-    _simulator = simulator.Simulator(wqbs, simulated_alphas_file, is_consultant, batch_size)
-
-    print("\n📋 请选择回测模式:")
-    print("1: 自动回测(按模板生成Alpha并回测)")
-    print("2: 手动回测(从目录中读取JSON并回测)")
-    simulated_mode = int(input("\n请选择模式 (1-2): "))
-    
-    if simulated_mode not in [1, 2]:
-        print("❌ 无效的模式选择")
-    if simulated_mode == 1:
+    simulator = Simulator(wqbs, simulated_alphas_file, is_consultant, batch_size)
+    if mode == 1:
+        run_simulator(wqbs, simulator)
+    else:
         print("\n📊 可用数据集列表:")
         for dataset in dataset_config.get_dataset_list():
             print(dataset)
@@ -56,14 +78,25 @@ def run_simulator(wqbs:wqb.WQBSession):
         if not dataset_id:
             print("❌ 无效的数据集编号")
             return
-        
-        machine.AlphaMachine(simulator=_simulator,wqbs=wqbs, dataset_id=dataset_id).run()
+        begen_date = input("\n请输入开始日期(YYYY-MM-DD): ")
+        end_date = input("\n请输入结束日期(YYYY-MM-DD): ")
+        improvement = Improvement(wqbs, dataset_id=dataset_id)
+        list = improvement.first_improve(datetime.fromisoformat(f'{begen_date}T00:00:00-05:00'), datetime.fromisoformat(f'{end_date}T00:00:00-05:00'))
+        if len(list) == 0:
+            print("❌ 无可提升Alpha")
+            return
+        begin_time = datetime.now()
+        simulator.simulate_alphas(list)
+        end_time = datetime.now()
+        seconds = (end_time - begin_time).seconds
+        print(f"第一阶段提升耗时: {seconds}")
+        # 12小时时差
+        list = improvement.second_improve(begin_time-timedelta(hours=12), end_time-timedelta(hours=12))
+        simulator.simulate_alphas(list)
+        seconds = (datetime.now() - end_time).seconds
+        print(f"第二阶段提升耗时: {seconds}")
 
-    else:
-        available_path = str(input("\n请输入可回测 Alpha 文件路径(默认: ./available_alphas): "))
-        if available_path == "":
-            available_path = "./available_alphas"
-        _simulator.simulate_with_available(available_path)
+
 
 def main():
     
@@ -90,11 +123,8 @@ def main():
             print("❌ 无效的模式选择")
             return
 
-        if mode == 1:
-            run_simulator(wqbs=wqbs)
-        elif mode == 2:
-            print("开发中...")
-            return
+        if mode == 1 or mode == 2:
+            improve_or_simulate(wqbs, mode)
         elif mode == 3:
             print("\n📋 请选择提交模式:")
             print("1: 直接提交")
@@ -116,7 +146,7 @@ def main():
             if submit_num_str != '':
                 submit_num = int(submit_num_str)
 
-            AutoSubmit(wqbs=wqbs, submit_num=submit_num, checkRank=checkRank, improve=improve).run()
+            Submitter(wqbs=wqbs, submit_num=submit_num, checkRank=checkRank, improve=improve).run()
         else:
             
             if mode == 5:
@@ -126,21 +156,21 @@ def main():
                 if alpha_num_str != '':
                     alpha_num = int(alpha_num_str)
                     
-                favorite.FavoriteAlphas(wqbs=wqbs).add_favorite(alpha_num)
+                FavoriteAlpha(wqbs=wqbs).add_favorite(alpha_num)
             else:
                 
                 # 生成数据集文件
                 out_put_path = str(input("\n请输入保存文件路径(默认: ./datasetFile): "))
                 if out_put_path == "":
                     out_put_path = "./datasetFile"
-                _export = export.ExportFiles(
+                export = ExportFiles(
                     wqbs=wqbs
                     , out_put_path=out_put_path
                 )
                 if mode == 4:
-                    _export.generate()
+                    export.generate()
                 else:
-                    _export.export_submitted_alphas()
+                    export.export_submitted_alphas()
                 
 
     except Exception as e:

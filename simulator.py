@@ -56,14 +56,14 @@ class Simulator:
                     on_finish=lambda vars: print(vars['resp']),
                     on_success=lambda vars: print(vars['resp']),
                     on_failure=lambda vars: print(vars['resp']),
-                    log='Simulator#pre_consultant_simulate'
+                    log=f'{self}#pre_consultant_simulate'
                 )
             )
             lines = []
             for idx, resp in enumerate(resps, start=0):
                 if not resp.ok: # 如果回测失败
                     continue
-                lines.append(f'{utils.hash(alpha_list[idx])}\r\n')
+                lines.append(f'{utils.hash(alpha_list[idx])}\n')
             
             # 将已处理的 Alpha ID 写入文件中
             utils.save_lines_to_file(self.simulated_alphas_file, lines)
@@ -83,7 +83,7 @@ class Simulator:
                 on_finish=lambda vars: print(vars['resp']),
                 on_success=lambda vars: print(vars['resp']),
                 on_failure=lambda vars: print(vars['resp']),
-                log='Simulator#consultant_simulate'
+                log=f'{self}#consultant_simulate'
             )
         )
         success_num = 0
@@ -93,7 +93,7 @@ class Simulator:
             lines = []
             for alpha in multi_alphas[idx]:
                 success_num += 1
-                lines.append(f'{utils.hash(alpha_list[idx])}\r\n')
+                lines.append(f'{utils.hash(alpha_list[idx])}\n')
             utils.save_lines_to_file(self.simulated_alphas_file, lines)
         print(f'共{len(alpha_list)}个，✅成功{success_num} 个，❌失败：{len(alpha_list)-success_num} 个...')
 

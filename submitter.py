@@ -4,6 +4,7 @@ import asyncio
 import pandas as pd
 import wqb
 
+from self_correlation import SelfCorrelation
 import utils
 
 class Submitter:
@@ -18,6 +19,9 @@ class Submitter:
         self.submit_num = submit_num
         self.checkRank = checkRank
         self.improve = improve
+        self.correlation = SelfCorrelation(wqbs=wqbs)
+        # 先做一次增量下载
+        self.correlation.download_data(flag_increment=True)
 
     def submit_fail(self, alpha_id: str, checks:list):
         fail_checks = []
@@ -60,10 +64,20 @@ class Submitter:
 
         if len(alphas) == 0:
             print('没有可提交的 Alpha...')
+
             return 
         
-        # 过滤
-        alphas = utils.filter_failed_alphas(alphas)
+        # 过滤掉有FAIL指标的的alpha
+        alphas =  [
+            alpha for alpha in alphas 
+            if not any(
+                check['result'] == 'FAIL' 
+                for check in alpha['is']['checks']
+            )
+        ]
+
+        # 自相关性过滤
+        alphas = [alpha for alpha in alphas if self.correlation.calc_self_corr(alpha['id']) < 0.7]
         print(f'过滤后共 {len(alphas)} 个 Alpha 可提交...')
         for alpha in alphas:
             if self.checkRank:
@@ -80,7 +94,7 @@ class Submitter:
                     # on_finish=lambda vars: print(vars['resp']),
                     # on_success=lambda vars: print(vars['resp']),
                     # on_failure=lambda vars: print(vars['resp']),
-                    log='AutoSubmit#submit'
+                    log=f'{self}#submit'
                 )
             ):
                 sussess_count += 1

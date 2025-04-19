@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 import random
 import wqb
+import dataset_config
 import factory
 
 class Improvement:
@@ -99,15 +100,22 @@ class Improvement:
         
         fo_layer = self.prune(fo_tracker, self.dataset_id, 5)
         group_ops = ["group_neutralize", "group_rank", "group_zscore"]
-        so_alpha_list = []
+        sim_data_list = []
+        settings = dataset_config.get_api_settings(self.dataset_id)
         for expr, decay in fo_layer:
             for alpha in factory.get_group_second_order_factory([expr], group_ops, self.region):
-                so_alpha_list.append((alpha,decay))
-        # 为什么要打乱顺序？
-        random.shuffle(so_alpha_list)
-        print(f'第一次改进后有{len(so_alpha_list)}个Alpha')
-        print(f'前三个如下：\n{so_alpha_list[:3]}')
-        return factory.generate_sim_data(self.dataset_id, so_alpha_list)
+                # 更新decay
+                settings["decay"] = decay
+                sim_data_list.append({
+                    'type': 'REGULAR',
+                    'settings': settings,
+                    'regular': alpha
+                })
+       # 为什么要打乱顺序？
+        random.shuffle(sim_data_list)
+        print(f'第一次改进后有{len(sim_data_list)}个Alpha')
+        print(f'前三个如下：\n{sim_data_list[:3]}')
+        return sim_data_list
 
     def second_improve(
         self
@@ -133,15 +141,22 @@ class Improvement:
         fo_tracker = self.handle_alphas(list, sharpe)
         
         so_layer = self.prune(fo_tracker, self.dataset_id, 5)
-        so_alpha_list = []
+        sim_data_list = []
+        settings = dataset_config.get_api_settings(self.dataset_id)
         for expr, decay in so_layer:
             for alpha in factory.trade_when_factory("trade_when", expr, self.region):
-                so_alpha_list.append((alpha, decay))
+                # 更新decay
+                settings["decay"] = decay
+                sim_data_list.append({
+                    'type': 'REGULAR',
+                    'settings': settings,
+                    'regular': alpha
+                })
         # 为什么要打乱顺序？
-        random.shuffle(so_alpha_list)
-        print(f'第二次改进后有{len(so_alpha_list)}个Alpha')
-        print(f'前三个如下：\n{so_alpha_list[:3]}')
-        return factory.generate_sim_data(self.dataset_id, so_alpha_list)
+        random.shuffle(sim_data_list)
+        print(f'第二次改进后有{len(sim_data_list)}个Alpha')
+        print(f'前三个如下：\n{sim_data_list[:3]}')
+        return sim_data_list
 
     def handle_alphas(self, alphas: list, sharpe) -> list:
         """

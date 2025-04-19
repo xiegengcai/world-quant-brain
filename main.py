@@ -80,7 +80,12 @@ def improve_or_simulate(wqbs:wqb.WQBSession, mode:int):
             return
         begen_date = input("\n请输入开始日期(YYYY-MM-DD): ")
         end_date = input("\n请输入结束日期(YYYY-MM-DD): ")
-        improvement = Improvement(wqbs, dataset_id=dataset_id)
+        limit_str = input("\n请输入数据量(默认: 100): ")
+        limit = 100
+        if limit_str != '':
+            limit = int(limit_str)
+
+        improvement = Improvement(wqbs, dataset_id=dataset_id,limit=limit)
         list = improvement.first_improve(datetime.fromisoformat(f'{begen_date}T00:00:00-05:00'), datetime.fromisoformat(f'{end_date}T00:00:00-05:00'))
         if len(list) == 0:
             print("❌ 无可提升Alpha")
@@ -142,7 +147,6 @@ def main():
 
             submit_num_str = input("\n请输入提交Alpha数量(默认: 2):") 
             submit_num = 2
-            improve = 10
             if submit_num_str != '':
                 submit_num = int(submit_num_str)
 

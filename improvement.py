@@ -25,7 +25,7 @@ class Improvement:
         :param end_time: 结束时间
         :param dataset_id: 数据集id
         :param region: 所在地区
-        :param limit: 每次查询返回的数据条数
+        :param limit: 查询待提升原始数据量
         """
         self.wqbs = wqbs
         self.dataset_id = dataset_id
@@ -50,6 +50,7 @@ class Improvement:
             region=self.region,
             delay=1,
             universe='TOP3000',
+
             sharpe=wqb.FilterRange.from_str(f'[{sharpe}, inf)'),
             fitness=wqb.FilterRange.from_str(f'[{fitness}, inf)'),
             date_created=date_created_range,

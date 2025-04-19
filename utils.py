@@ -43,7 +43,11 @@ def filter_failed_alphas(alpha_list: list) -> list:
     return list
 
 def is_favorable(wqbs: wqb.WQBSession, alpha_id:str, improve:int=0) -> bool:
-    """判断 Alpha 是可收藏的"""
+    """
+    判断 Alpha 是可收藏的
+    判断标准：
+    1. 该alpha的提交before和after的Change(名次)是否上升大于improve
+    """
     resp = wqbs.get(f'{wqb.WQB_API_URL}/competitions/IQC2025S1/alphas/{alpha_id}/before-and-after-performance')
     retry_after = float(resp.headers.get("Retry-After", 0))
     if retry_after > 0:

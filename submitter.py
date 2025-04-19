@@ -72,7 +72,7 @@ class Submitter:
                     print(f'❌ Alpha {alpha["id"]} 不符合提升{self.improve}名次！')
                     continue
             
-            print(f'✅ Alpha {alpha["id"]} 可提升{self.improve}名次！')
+                print(f'✅ Alpha {alpha["id"]} 可提升{self.improve}名次！')
             if asyncio.run(
                 self._submit(
                     alpha_id=alpha['id'],

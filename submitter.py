@@ -22,6 +22,7 @@ class Submitter:
         self.correlation = SelfCorrelation(wqbs=wqbs)
         # 先做一次增量下载
         self.correlation.download_data(flag_increment=True)
+        self.os_alpha_ids, self.os_alpha_rets =self.correlation.load_data()
 
     def submit_fail(self, alpha_id: str, checks:list):
         fail_checks = []
@@ -59,6 +60,25 @@ class Submitter:
         print(f'✅ Alpha {alpha_id} 提交成功！')
         return True
     
+    def filter_correlation(self, alpha_list: list) -> list:
+        list=[]
+        # os_alpha_ids, os_alpha_rets =self.correlation.load_data()
+        for alpha in alpha_list:
+            try:
+                ret = self.correlation.calc_self_corr(
+                    alpha_id=alpha['id'],
+                    os_alpha_rets=self.os_alpha_rets
+                    ,os_alpha_ids=self.os_alpha_ids
+                )
+                if ret < 0.7:
+                    list.append(alpha)
+            except Exception as e:
+                print(f'计算alpha {alpha["id"]} 自相关性失败: {e}')
+
+        return list
+
+                
+    
     def submit(self, limit:int=500, offset:int=0, sussess_count:int=0):
         alphas = utils.submitable_alphas(wqbs=self.wqbs, limit=limit, order='is.sharpe', offset=offset)
 
@@ -66,18 +86,11 @@ class Submitter:
             print('没有可提交的 Alpha...')
 
             return 
-        
         # 过滤掉有FAIL指标的的alpha
-        alphas =  [
-            alpha for alpha in alphas 
-            if not any(
-                check['result'] == 'FAIL' 
-                for check in alpha['is']['checks']
-            )
-        ]
+        alphas =  utils.filter_failed_alphas(alphas)
 
         # 自相关性过滤
-        alphas = [alpha for alpha in alphas if self.correlation.calc_self_corr(alpha['id']) < 0.7]
+        # alphas = self.filter_correlation(alphas)
         print(f'过滤后共 {len(alphas)} 个 Alpha 可提交...')
         for alpha in alphas:
             if self.checkRank:

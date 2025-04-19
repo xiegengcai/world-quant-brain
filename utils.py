@@ -27,6 +27,21 @@ def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreate
     print(f'共{len(alpha_list)}个Alpha待提交')
     return alpha_list
 
+def filter_failed_alphas(alpha_list: list) -> list:
+    """过滤掉有FAIL指标的的alpha"""
+    list = []
+    for alpha in alpha_list:
+        checks = alpha['is']['checks']
+        fail = False
+        for check in checks:
+            if check['result'] == 'FAIL':
+                fail = True
+                break
+        if fail:
+            continue
+        list.append(alpha)
+    return list
+
 def is_favorable(wqbs: wqb.WQBSession, alpha_id:str, improve:int=0) -> bool:
     """
     判断 Alpha 是可收藏的

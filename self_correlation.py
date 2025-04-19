@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import requests
 import pandas as pd
@@ -61,7 +62,15 @@ class SelfCorrelation:
         Returns:
             pd.DataFrame: 包含日期和对应 PnL 数据的 DataFrame，列名为 'Date' 和 alpha_id。
         """
-        pnl = self.wqbs.get(f"{wqb.WQB_API_URL}/alphas/{alpha_id}/recordsets/pnl").json()
+        resp = None
+        while True:
+            # 可能会被限流
+            resp = self.wqbs.get(f"{wqb.WQB_API_URL}/alphas/{alpha_id}/recordsets/pnl")
+            if resp.ok:
+                break
+            time.sleep(float(resp.headers[wqb.RETRY_AFTER]))
+
+        pnl = resp.json()
         df = pd.DataFrame(pnl['records'], columns=[item['name'] for item in pnl['schema']['properties']])
         df = df.rename(columns={'date':'Date', 'pnl':alpha_id})
         df = df[['Date', alpha_id]]
@@ -114,12 +123,16 @@ class SelfCorrelation:
         offset = 0
         retries = 0
         total_alphas = 100
-        while len(fetched_alphas) < total_alphas:
+        # while len(fetched_alphas) < total_alphas:
+        while True:
             res = self.wqbs.filter_alphas_limited(
                 limit=limit,
                 offset=offset,
                 order='-dateSubmitted',
-                others=['stage=OS']
+                # others=['stage=OS']
+                sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
+                fitness=wqb.FilterRange.from_str('[1, inf)'),
+                turnover=wqb.FilterRange.from_str('(-inf, 0.7]')
             ).json()
 
             if offset == 0:
@@ -176,6 +189,24 @@ class SelfCorrelation:
         else:
             return self_corr
     def download_data(self,flag_increment=True):
+        """
+        Downloads and saves alpha data from the API.
+        
+        This function checks if data already exists, and if not, downloads it from the API and saves to the specified path.
+        It supports incremental downloads to avoid re-downloading existing data.
+        
+        Args:
+            flag_increment (bool): Whether to use incremental download mode. Defaults to True.
+                If True, loads existing data and only downloads new alphas.
+                If False, downloads all alphas from scratch.
+        
+        The function downloads alpha IDs and PnL data, and saves them to three files:
+        - os_alpha_ids: Dictionary mapping of alpha IDs
+        - os_alpha_pnls: Matrix of alpha PnL values  
+        - ppac_alpha_ids: List of Power Pool Alpha IDs
+        
+        Prints summary of newly downloaded alphas and total alpha count.
+        """
         """
         下载数据并保存到指定路径。
         此函数会检查数据是否已经存在，如果不存在，则从 API 下载数据并保存到指定路径。
@@ -238,17 +269,17 @@ class SelfCorrelation:
         return os_alpha_ids, os_alpha_rets
 
 
-# if __name__ == '__main__':
-#     wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger())
-#     self_corr = SelfCorrelation(wqbs=wqbs, data_path='./results')
-#     # 增量下载数据
-#     self_corr.download_data(flag_increment=True)
-#     alpha_id = 'dWZ9nMj'
-#     os_alpha_ids, os_alpha_rets =self_corr. load_data()
+if __name__ == '__main__':
+    wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger())
+    self_corr = SelfCorrelation(wqbs=wqbs, data_path='./results')
+    # 增量下载数据
+    self_corr.download_data(flag_increment=True)
+    alpha_id = 'LMeEQj6'
+    os_alpha_ids, os_alpha_rets =self_corr.load_data()
     
-#     rs = self_corr.calc_self_corr(
-#         alpha_id=alpha_id,
-#         os_alpha_rets=os_alpha_rets,
-#         os_alpha_ids=os_alpha_ids,
-#     )
-#     print(f'{alpha_id} 的最大自相关性为 {rs}')
+    rs = self_corr.calc_self_corr(
+        alpha_id=alpha_id,
+        os_alpha_rets=os_alpha_rets,
+        os_alpha_ids=os_alpha_ids,
+    )
+    print(f'{alpha_id} 的最大自相关性为 {rs}')

@@ -58,11 +58,15 @@ def improve_or_simulate(wqbs:wqb.WQBSession, mode:int):
         is_consultant = True
     else:
         is_consultant = False
+    
+    batch_size = 30
 
-    batch_size = int(input("\n请输入每批次数据大小 (1-100): "))
-    if batch_size <= 0 or batch_size > 100:
-        print("❌ 无效的每批次数据大小")
-        return
+    batch_size_str = input("\n请输入每批次数据大小 (1-100, 默认: 30): ")
+    if batch_size_str != '':
+        batch_size = int(batch_size_str)
+        if batch_size < 1 or batch_size > 100:
+            print("❌ 无效的每批次数据大小")
+            return
     print(f"已回测文件路径: {simulated_alphas_file}, 顾问:{is_consultant}, 每批次数据大小: {batch_size}")
     
     simulator = Simulator(wqbs, simulated_alphas_file, is_consultant, batch_size)

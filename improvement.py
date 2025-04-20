@@ -68,14 +68,14 @@ class Improvement:
             region=self.region,
             delay=1,
             universe='TOP3000',
-            sharpe=wqb.FilterRange.from_str(f'[-inf,{sharpe})'),
-            fitness=wqb.FilterRange.from_str(f'[-inf,{fitness})'),
+            sharpe=wqb.FilterRange.from_str(f'(-inf,{-sharpe}]'),
+            fitness=wqb.FilterRange.from_str(f'(-inf,{-fitness}]'),
             date_created=date_created_range,
             order='-is.sharpe',
             limit=self.limit,
             log=f"{self}#get_alphas"
         )
-        alpha_list.append(resp.json()['results'])
+        alpha_list.extend(resp.json()['results'])
         return alpha_list
     
     def first_improve(
@@ -165,19 +165,21 @@ class Improvement:
         """
         output = []
         for alpha in alphas:
-            alpha_id = alpha["id"]
-            name = alpha["name"]
-            dateCreated = alpha["dateCreated"]
-            sharpe = alpha["is"]["sharpe"]
-            fitness = alpha["is"]["fitness"]
-            turnover = alpha["is"]["turnover"]
-            margin = alpha["is"]["margin"]
             longCount = alpha["is"]["longCount"]
             shortCount = alpha["is"]["shortCount"]
-            decay = alpha["settings"]["decay"]
-            exp = alpha['regular']['code']
             #if (sharpe > 1.2 and sharpe < 1.6) or (sharpe < -1.2 and sharpe > -1.6):
             if (longCount + shortCount) > 100:
+                longCount = alpha["is"]["longCount"]
+                shortCount = alpha["is"]["shortCount"]
+                alpha_id = alpha["id"]
+                dateCreated = alpha["dateCreated"]
+                sharpe = alpha["is"]["sharpe"]
+                fitness = alpha["is"]["fitness"]
+                turnover = alpha["is"]["turnover"]
+                margin = alpha["is"]["margin"]
+                
+                decay = alpha["settings"]["decay"]
+                exp = alpha['regular']['code']
                 if sharpe < -sharpe:
                     exp = "-%s"%exp
                 rec = [alpha_id, exp, sharpe, turnover, fitness, margin, dateCreated, decay]
@@ -195,6 +197,7 @@ class Improvement:
                 elif turnover > 0.3:
                     rec.append(decay+2)
                 output.append(rec)
+        
         return output
 
     def prune(self, next_alpha_recs, prefix, keep_num):

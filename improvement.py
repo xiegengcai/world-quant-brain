@@ -3,9 +3,12 @@
 from collections import defaultdict
 from datetime import datetime
 import random
+from typing import Iterable
 import wqb
 import dataset_config
 import factory
+from simulator import Simulator
+import utils
 
 class Improvement:
     """
@@ -15,6 +18,8 @@ class Improvement:
             self
             , wqbs:wqb.WQBSession
             , dataset_id:str
+            , begin_time:datetime
+            , end_time:datetime
             , region:str='USA'
             , limit:int=100
     ):
@@ -29,6 +34,8 @@ class Improvement:
         """
         self.wqbs = wqbs
         self.dataset_id = dataset_id
+        self.begin_time = begin_time
+        self.end_time = end_time
         self.region = region
         self.limit = limit
 
@@ -37,6 +44,7 @@ class Improvement:
         , date_created_range: wqb.FilterRange
         , sharpe:float=1.2
         , fitness:float=1.0
+        , others:Iterable[str]=None
     ) -> list:
         """
         获取alpha列表
@@ -45,24 +53,28 @@ class Improvement:
         :param fitness: fitness
         :return: alpha列表
         """
+        date_created_range=wqb.FilterRange.from_str(f"[{self.begin_time.isoformat()}, {self.end_time.isoformat()})")
         resp = self.wqbs.filter_alphas_limited(
             status='UNSUBMITTED',
             region=self.region,
             delay=1,
             universe='TOP3000',
-
             sharpe=wqb.FilterRange.from_str(f'[{sharpe}, inf)'),
             fitness=wqb.FilterRange.from_str(f'[{fitness}, inf)'),
             date_created=date_created_range,
             order='is.sharpe',
+            others=others,
             limit=self.limit,
             log=f"{self}#get_alphas"
         )
         alpha_list = resp.json()['results']
         if len(alpha_list) == self.limit:
             return alpha_list
-        
+
         # 不够
+        for i in range(len(others)):
+            others[i]=others[i].replace('%3C', '%3C-')
+        print(others)
         resp = self.wqbs.filter_alphas_limited(
             status='UNSUBMITTED',
             region=self.region,
@@ -72,6 +84,7 @@ class Improvement:
             fitness=wqb.FilterRange.from_str(f'(-inf,{-fitness}]'),
             date_created=date_created_range,
             order='-is.sharpe',
+            others=others,
             limit=self.limit,
             log=f"{self}#get_alphas"
         )
@@ -80,19 +93,16 @@ class Improvement:
     
     def first_improve(
             self
-            , begin_time:datetime
-            , end_time:datetime
-            , sharpe:float=1.2, fitness:float=1.0) -> list:
+            , sharpe:float=1.2
+            , fitness:float=1.0) -> list:
         """
         第一次改进
-        :param begin_time: 开始时间
-        :param end_time: 结束时间
         :param sharpe: 改进后alpha的夏普比率
         :param fitness: 改进后alpha的fitness
         :return: 改进后的alpha
         """
-        date_created_range=wqb.FilterRange.from_str(f"[{begin_time.isoformat()}, {end_time.isoformat()})")
-        list = self.get_alphas(date_created_range, sharpe, fitness)
+        
+        list = self.get_alphas(sharpe, fitness, others=['is.sharpe%3C1.4'])
         if len(list) == 0:
             print(f"没有Alpha可以改进...")
             return
@@ -120,8 +130,6 @@ class Improvement:
 
     def second_improve(
         self
-        , begin_time:datetime
-        , end_time:datetime
         , sharpe:float=1.4
         , fitness:float=1.0
     ) -> list:
@@ -133,8 +141,7 @@ class Improvement:
         :param fitness: 改进后alpha的fitness
         :return: 改进后的alpha
         """
-        date_created_range=wqb.FilterRange.from_str(f"[{begin_time.isoformat()}, {end_time.isoformat()})")
-        list = self.get_alphas(date_created_range, sharpe, fitness)
+        list = self.get_alphas(sharpe, fitness, others=['is.sharpe%3C1.58'])
         if len(list) == 0:
             print(f"没有Alpha可以改进...")
             return
@@ -145,7 +152,8 @@ class Improvement:
         sim_data_list = []
         settings = dataset_config.get_api_settings(self.dataset_id)
         for expr, decay in so_layer:
-            for alpha in factory.trade_when_factory("trade_when", expr, self.region):
+            # for alpha in factory.trade_when_factory("trade_when", expr, self.region):
+            for alpha in factory.trade_when_factory("trade_when", expr):
                 # 更新decay
                 settings["decay"] = decay
                 sim_data_list.append({
@@ -217,3 +225,17 @@ class Improvement:
                 exp = rec[1]
                 output.append([exp,decay])
         return output
+
+if  __name__ == "__main__":
+    wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger())
+    improvement = Improvement(
+            wqbs
+        , dataset_id='fundamental6'
+        , begin_time=datetime.fromisoformat('2025-03-25T00:00:00-05:00')
+        , end_time=datetime.fromisoformat('2025-04-09T00:00:00-05:00')
+        ,limit=100
+    )
+    list=improvement.second_improve()
+    if  len(list) > 0:
+        simulator = Simulator(wqbs, "./results/alpha_ids.txt", False, 30)
+        simulator.simulate_alphas(list)

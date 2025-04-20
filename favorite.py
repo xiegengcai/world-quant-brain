@@ -22,7 +22,7 @@ class FavoriteAlpha:
     
     def add_favorite(self,limit:int):
         """添加收藏夹"""
-        alphas = utils.submitable_alphas(wqbs=self.wqbs,limit=limit)
+        alphas = utils.submitable_alphas(wqbs=self.wqbs,limit=limit,others=['favorite=false'])
         if len(alphas) == 0:
             return
         # 过滤

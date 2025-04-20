@@ -5,10 +5,11 @@ from os.path import expanduser
 
 from collections import defaultdict
 import time
+from typing import Iterable
 
 import wqb
 
-def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreated', offset:int=0) -> list:
+def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreated', offset:int=0,others:Iterable[str]=None) -> list:
     """可提交的alpha"""
     resp = wqbs.filter_alphas_limited(
         status='UNSUBMITTED',
@@ -18,6 +19,7 @@ def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreate
         sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
         fitness=wqb.FilterRange.from_str('[1, inf)'),
         turnover=wqb.FilterRange.from_str('(-inf, 0.7]'),
+        others=others,
         order=order,
         limit=limit,
         offset=offset,

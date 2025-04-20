@@ -89,8 +89,14 @@ def improve_or_simulate(wqbs:wqb.WQBSession, mode:int):
         if limit_str != '':
             limit = int(limit_str)
 
-        improvement = Improvement(wqbs, dataset_id=dataset_id,limit=limit)
-        list = improvement.first_improve(datetime.fromisoformat(f'{begen_date}T00:00:00-05:00'), datetime.fromisoformat(f'{end_date}T00:00:00-05:00'))
+        improvement = Improvement(
+            wqbs
+            , dataset_id=dataset_id
+            , begin_time=datetime.fromisoformat(f'{begen_date}T00:00:00-05:00')
+            , end_time=datetime.fromisoformat(f'{end_date}T00:00:00-05:00')
+            ,limit=limit
+        )
+        list = improvement.first_improve()
         if len(list) == 0:
             print("❌ 无可提升Alpha")
             return
@@ -100,7 +106,7 @@ def improve_or_simulate(wqbs:wqb.WQBSession, mode:int):
         seconds = (end_time - begin_time).seconds
         print(f"第一阶段提升耗时: {seconds}")
         # 12小时时差
-        list = improvement.second_improve(begin_time-timedelta(hours=12), end_time-timedelta(hours=12))
+        list = improvement.second_improve()
         simulator.simulate_alphas(list)
         seconds = (datetime.now() - end_time).seconds
         print(f"第二阶段提升耗时: {seconds}")

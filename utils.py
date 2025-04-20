@@ -23,6 +23,11 @@ def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreate
         offset=offset,
         log="utils#submitable_alphas"
     )
+    retry_after = float(resp.headers.get("Retry-After", 0))
+    # 增加重试
+    if retry_after > 0:
+        time.sleep(retry_after)
+        return submitable_alphas(wqbs=wqbs, limit=limit, order=order, offset=offset)
     alpha_list = resp.json()['results']
     print(f'共{len(alpha_list)}个Alpha待提交')
     return alpha_list

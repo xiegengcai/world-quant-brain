@@ -20,8 +20,6 @@ class Submitter:
         self.checkRank = checkRank
         self.improve = improve
         self.correlation = SelfCorrelation(wqbs=wqbs)
-        # 先做一次增量下载
-        self.correlation.download_data(flag_increment=True)
         self.os_alpha_ids, self.os_alpha_rets =self.correlation.load_data()
 
     def submit_fail(self, alpha_id: str, checks:list):
@@ -90,7 +88,7 @@ class Submitter:
         alphas =  utils.filter_failed_alphas(alphas)
 
         # 自相关性过滤
-        # alphas = self.filter_correlation(alphas)
+        alphas = self.filter_correlation(alphas)
         print(f'过滤后共 {len(alphas)} 个 Alpha 可提交...')
         for alpha in alphas:
             if self.checkRank:
@@ -128,6 +126,8 @@ class Submitter:
             offset += limit
 
         print(f'共提交 {sussess_count} 个 Alpha...')
+        # 做一次增量下载
+        self.correlation.download_data(flag_increment=True)
 
 
     

@@ -62,13 +62,12 @@ class SelfCorrelation:
         Returns:
             pd.DataFrame: 包含日期和对应 PnL 数据的 DataFrame，列名为 'Date' 和 alpha_id。
         """
-        resp = None
-        while True:
-            # 可能会被限流
-            resp = self.wqbs.get(f"{wqb.WQB_API_URL}/alphas/{alpha_id}/recordsets/pnl")
-            if resp.ok:
-                break
-            time.sleep(float(resp.headers[wqb.RETRY_AFTER]))
+        # 可能会被限流
+        resp = self.wqbs.get(f"{wqb.WQB_API_URL}/alphas/{alpha_id}/recordsets/pnl")
+        retry_after = float(resp.headers.get(wqb.RETRY_AFTER, 0))
+        if retry_after > 0:
+            time.sleep(retry_after)
+            return self._get_alpha_pnl(alpha_id)
 
         pnl = resp.json()
         df = pd.DataFrame(pnl['records'], columns=[item['name'] for item in pnl['schema']['properties']])
@@ -129,10 +128,10 @@ class SelfCorrelation:
                 limit=limit,
                 offset=offset,
                 order='-dateSubmitted',
-                # others=['stage=OS']
-                sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
-                fitness=wqb.FilterRange.from_str('[1, inf)'),
-                turnover=wqb.FilterRange.from_str('(-inf, 0.7]')
+                others=['stage=OS']
+                # sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
+                # fitness=wqb.FilterRange.from_str('[1, inf)'),
+                # turnover=wqb.FilterRange.from_str('(-inf, 0.7]')
             ).json()
 
             if offset == 0:
@@ -168,7 +167,7 @@ class SelfCorrelation:
                 如果 `return_alpha_pnls` 为 True，返回包含最大自相关性值和 alpha PnL 数据的元组。
         """
         if alpha_result is None:
-            alpha_result = self.wqbs.locate_alpha(alpha_id).json()
+            alpha_result = self.wqbs.locate_alpha(alpha_id=alpha_id, log=f'{self}#calc_self_corr').json()
         if alpha_pnls is not None:
             if len(alpha_pnls) == 0:
                 alpha_pnls = None

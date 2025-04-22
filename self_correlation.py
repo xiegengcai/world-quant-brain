@@ -1,19 +1,14 @@
-import asyncio
-import datetime
-import requests
 import pandas as pd
 import logging
 import time
-import requests
 from typing import Optional, Tuple
 from typing import Tuple, Dict, List
-from typing import Union, List, Tuple
+from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor
 import pickle
 from collections import defaultdict
 import numpy as np
-from tqdm import tqdm
-from pathlib import Path
+
 
 import wqb
 
@@ -128,10 +123,11 @@ class SelfCorrelation:
                 limit=limit,
                 offset=offset,
                 order='-dateSubmitted',
-                others=['stage=OS']
+                others=['stage=OS'],
                 # sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
                 # fitness=wqb.FilterRange.from_str('[1, inf)'),
                 # turnover=wqb.FilterRange.from_str('(-inf, 0.7]')
+                log=f'{self.__class__}#get_os_alphas'
             ).json()
 
             if offset == 0:

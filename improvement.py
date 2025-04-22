@@ -69,6 +69,7 @@ class Improvement:
                 order='is.sharpe',
                 others=others,
                 limit=limit,
+                offset=offset,
                 log=f"{self.__class__}#get_alphas"
             )
             data = resp.json()
@@ -89,8 +90,6 @@ class Improvement:
         # 不够
         for i in range(len(others)):
             others[i]=others[i].replace('%3C', '%3C-')
-        # 剩余量
-        surplus = self.limit - len(list)
         # 获取负值
         offset = 0
         while True:
@@ -105,6 +104,7 @@ class Improvement:
                 order='-is.sharpe',
                 others=others,
                 limit=limit,
+                offset=offset,
                 log=f"{self.__class__}#get_alphas"
             )
             data = resp.json()

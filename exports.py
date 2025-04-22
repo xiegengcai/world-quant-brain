@@ -20,7 +20,7 @@ class ExportFiles:
             delay=self.searchScope['delay'],
             universe=self.searchScope['universe'],
             limit=10000,
-            log=f'{self}#generate_datasets_file',
+            log=f'{self.__class__}#generate_datasets_file',
         )
         results = resp.json()['results']
         # 提取id,name,description,subcategory
@@ -67,7 +67,7 @@ class ExportFiles:
                 delay=self.searchScope['delay'],
                 universe=self.searchScope['universe'],
                 dataset_id=id,
-                log=f'{self}#generate_datasets_file',
+                log=f'{self.__class__}#generate_datasets_file',
                 limit=10000
             )
             data_fields = field_resp.json()['results']
@@ -94,7 +94,7 @@ class ExportFiles:
 
     def generate_operators_file(self):
         print(f"正在生成 Operators.md 文件...")
-        resp = self.wqbs.search_operators(log=f'{self}#generate_operators_file')
+        resp = self.wqbs.search_operators(log=f'{self.__class__}#generate_operators_file')
         operators = resp.json()
         
         with open(f'{self.out_put_path}/Operators.md', 'w', encoding="utf-8") as f:
@@ -124,7 +124,7 @@ class ExportFiles:
             region=self.searchScope['region'],
             delay=self.searchScope['delay'],
             universe=self.searchScope['universe'],
-            log=f'{self}#get_active_alphas'
+            log=f'{self.__class__}#get_active_alphas'
             , limit=10000
         )
         return resp.json()['results']

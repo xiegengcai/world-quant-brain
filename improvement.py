@@ -9,6 +9,7 @@ import dataset_config
 import factory
 from simulator import Simulator
 import utils
+from self_correlation import SelfCorrelation
 
 class Improvement:
     """
@@ -38,59 +39,89 @@ class Improvement:
         self.end_time = end_time
         self.region = region
         self.limit = limit
+        self.correlation = SelfCorrelation(wqbs=wqbs)
 
-    def get_alphas(
-        self
-        , date_created_range: wqb.FilterRange
+    def get_alphas(self
         , sharpe:float=1.2
         , fitness:float=1.0
-        , others:Iterable[str]=None
-    ) -> list:
+        , others:Iterable[str]=None) -> list:
         """
         获取alpha列表
-        :param date_created_range: alpha创建时间范围
         :param sharpe: 夏普比率
         :param fitness: fitness
+        :param others: 其他条件
         :return: alpha列表
         """
         date_created_range=wqb.FilterRange.from_str(f"[{self.begin_time.isoformat()}, {self.end_time.isoformat()})")
-        resp = self.wqbs.filter_alphas_limited(
-            status='UNSUBMITTED',
-            region=self.region,
-            delay=1,
-            universe='TOP3000',
-            sharpe=wqb.FilterRange.from_str(f'[{sharpe}, inf)'),
-            fitness=wqb.FilterRange.from_str(f'[{fitness}, inf)'),
-            date_created=date_created_range,
-            order='is.sharpe',
-            others=others,
-            limit=self.limit,
-            log=f"{self}#get_alphas"
-        )
-        alpha_list = resp.json()['results']
-        if len(alpha_list) == self.limit:
-            return alpha_list
-
+        offset = 0
+        # API 最大只能100
+        limit = min(max(self.limit, 1), 100)
+        list =[]
+        while True:
+            resp = self.wqbs.filter_alphas_limited(
+                status='UNSUBMITTED',
+                region=self.region,
+                delay=1,
+                universe='TOP3000',
+                sharpe=wqb.FilterRange.from_str(f'[{sharpe}, inf)'),
+                fitness=wqb.FilterRange.from_str(f'[{fitness}, inf)'),
+                date_created=date_created_range,
+                order='is.sharpe',
+                others=others,
+                limit=limit,
+                log=f"{self.__class__}#get_alphas"
+            )
+            data = resp.json()
+            if offset == 0:
+                print(f"本次查询条件下共有{data['count']}条数据...")
+            list.extend(data['results'])
+            if len(list) >= self.limit:
+                break
+            # 小于本次查询数量limit
+            if len(data['results']) < limit:
+                break
+            offset += limit
+        if len(list) == self.limit:
+            return list
+        if len(list) > self.limit:
+            return list[:self.limit]
+        
         # 不够
         for i in range(len(others)):
             others[i]=others[i].replace('%3C', '%3C-')
-        print(others)
-        resp = self.wqbs.filter_alphas_limited(
-            status='UNSUBMITTED',
-            region=self.region,
-            delay=1,
-            universe='TOP3000',
-            sharpe=wqb.FilterRange.from_str(f'(-inf,{-sharpe}]'),
-            fitness=wqb.FilterRange.from_str(f'(-inf,{-fitness}]'),
-            date_created=date_created_range,
-            order='-is.sharpe',
-            others=others,
-            limit=self.limit,
-            log=f"{self}#get_alphas"
-        )
-        alpha_list.extend(resp.json()['results'])
-        return alpha_list
-    
+        # 剩余量
+        surplus = self.limit - len(list)
+        # 获取负值
+        offset = 0
+        while True:
+            resp = self.wqbs.filter_alphas_limited(
+                status='UNSUBMITTED',
+                region=self.region,
+                delay=1,
+                universe='TOP3000',
+                sharpe=wqb.FilterRange.from_str(f'(-inf,{-sharpe}]'),
+                fitness=wqb.FilterRange.from_str(f'(-inf,{-fitness}]'),
+                date_created=date_created_range,
+                order='-is.sharpe',
+                others=others,
+                limit=limit,
+                log=f"{self.__class__}#get_alphas"
+            )
+            data = resp.json()
+            if offset == 0:
+                print(f"本次查询条件下共有{data['count']}条数据...")
+            list.extend(data['results'])
+            if len(list) >= self.limit:
+                break
+            # 小于本次查询数量limit
+            if len(data['results']) < limit:
+                break
+            offset += limit
+        if len(list) > self.limit:
+            return list[:self.limit]
+        return list
+        
+
     def first_improve(
             self
             , sharpe:float=1.2
@@ -104,9 +135,12 @@ class Improvement:
         
         list = self.get_alphas(sharpe, fitness, others=['is.sharpe%3C1.4'])
         if len(list) == 0:
-            print(f"没有Alpha可以改进...")
+            print("没有Alpha可以改进...")
             return
-        
+        # 过滤自相关
+        list = utils.filter_correlation(self.correlation, list, 0.68)
+        if len(list) == 0:
+            print("没有自相关小于0.68的Alpha...")
         fo_tracker = self.handle_alphas(list, sharpe)
         
         fo_layer = self.prune(fo_tracker, self.dataset_id, 5)
@@ -145,7 +179,10 @@ class Improvement:
         if len(list) == 0:
             print(f"没有Alpha可以改进...")
             return
-        
+        # 过滤自相关
+        list = utils.filter_correlation(self.correlation, list, 0.68)
+        if len(list) == 0:
+            print("没有自相关小于0.68的Alpha...")
         fo_tracker = self.handle_alphas(list, sharpe)
         
         so_layer = self.prune(fo_tracker, self.dataset_id, 5)

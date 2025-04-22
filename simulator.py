@@ -56,7 +56,7 @@ class Simulator:
                     on_finish=lambda vars: print(vars['resp']),
                     on_success=lambda vars: print(vars['resp']),
                     on_failure=lambda vars: print(vars['resp']),
-                    log=f'{self}#pre_consultant_simulate'
+                    log=f'{self.__class__}#pre_consultant_simulate'
                 )
             )
             lines = []
@@ -83,7 +83,7 @@ class Simulator:
                 on_finish=lambda vars: print(vars['resp']),
                 on_success=lambda vars: print(vars['resp']),
                 on_failure=lambda vars: print(vars['resp']),
-                log=f'{self}#consultant_simulate'
+                log=f'{self.__class__}#consultant_simulate'
             )
         )
         success_num = 0

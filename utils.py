@@ -9,30 +9,41 @@ from typing import Iterable
 
 import wqb
 
-def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreated', offset:int=0,others:Iterable[str]=None) -> list:
+from self_correlation import SelfCorrelation
+
+def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreated', others:Iterable[str]=None) -> list:
     """可提交的alpha"""
-    resp = wqbs.filter_alphas_limited(
-        status='UNSUBMITTED',
-        region='USA',
-        delay=1,
-        universe='TOP3000',
-        sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
-        fitness=wqb.FilterRange.from_str('[1, inf)'),
-        turnover=wqb.FilterRange.from_str('(-inf, 0.7]'),
-        others=others,
-        order=order,
-        limit=limit,
-        offset=offset,
-        log="utils#submitable_alphas"
-    )
-    retry_after = float(resp.headers.get("Retry-After", 0))
-    # 增加重试
-    if retry_after > 0:
-        time.sleep(retry_after)
-        return submitable_alphas(wqbs=wqbs, limit=limit, order=order, offset=offset)
-    alpha_list = resp.json()['results']
-    print(f'共{len(alpha_list)}个Alpha待提交')
-    return alpha_list
+    offset = 0
+    list = []
+    # API 最大只能100
+    _limit = min(max(limit, 1), 100)
+    while True:
+        resp = wqbs.filter_alphas_limited(
+            status='UNSUBMITTED',
+            region='USA',
+            delay=1,
+            universe='TOP3000',
+            sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
+            fitness=wqb.FilterRange.from_str('[1, inf)'),
+            turnover=wqb.FilterRange.from_str('(-inf, 0.7]'),
+            others=others,
+            order=order,
+            limit=_limit,
+            offset=offset,
+            log="utils#submitable_alphas"
+        )
+        data = resp.json()
+        if offset == 0:
+            print(f"本次查询条件下共有{data['count']}条数据...")
+        list.extend(data['results'])
+        if len(list) >= limit:
+            break
+        # 小于本次查询数量limit
+        if len(data['results']) < _limit:
+            break
+        offset += _limit
+    
+    return list
 
 def filter_failed_alphas(alpha_list: list) -> list:
     """过滤掉有FAIL指标的的alpha"""
@@ -104,3 +115,21 @@ def prune(next_alpha_recs, prefix, keep_num):
             exp = rec[1]
             output.append([exp,decay])
     return output
+
+def filter_correlation(correlation:SelfCorrelation, alpha_list: list, threshold:float=0.7) -> list:
+    list=[]
+    os_alpha_ids, os_alpha_rets = correlation.load_data()
+    # os_alpha_ids, os_alpha_rets =self.correlation.load_data()
+    for alpha in alpha_list:
+        try:
+            ret = correlation.calc_self_corr(
+                alpha_id=alpha['id'],
+                os_alpha_rets=os_alpha_rets
+                ,os_alpha_ids=os_alpha_ids
+            )
+            if ret < threshold:
+                list.append(alpha)
+        except Exception as e:
+            print(f'计算alpha {alpha["id"]} 自相关性失败: {e}')
+
+    return list

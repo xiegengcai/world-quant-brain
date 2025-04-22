@@ -20,7 +20,6 @@ class Submitter:
         self.checkRank = checkRank
         self.improve = improve
         self.correlation = SelfCorrelation(wqbs=wqbs)
-        self.os_alpha_ids, self.os_alpha_rets =self.correlation.load_data()
 
     def submit_fail(self, alpha_id: str, checks:list):
         fail_checks = []
@@ -57,28 +56,10 @@ class Submitter:
             return False
         print(f'✅ Alpha {alpha_id} 提交成功！')
         return True
-    
-    def filter_correlation(self, alpha_list: list) -> list:
-        list=[]
-        # os_alpha_ids, os_alpha_rets =self.correlation.load_data()
-        for alpha in alpha_list:
-            try:
-                ret = self.correlation.calc_self_corr(
-                    alpha_id=alpha['id'],
-                    os_alpha_rets=self.os_alpha_rets
-                    ,os_alpha_ids=self.os_alpha_ids
-                )
-                if ret < 0.7:
-                    list.append(alpha)
-            except Exception as e:
-                print(f'计算alpha {alpha["id"]} 自相关性失败: {e}')
-
-        return list
-
                 
     
-    def submit(self, limit:int=500, offset:int=0, sussess_count:int=0):
-        alphas = utils.submitable_alphas(wqbs=self.wqbs, limit=limit, order='is.sharpe', offset=offset)
+    def submit(self, limit:int=500, sussess_count:int=0):
+        alphas = utils.submitable_alphas(wqbs=self.wqbs, limit=limit, order='is.sharpe')
 
         if len(alphas) == 0:
             print('没有可提交的 Alpha...')
@@ -88,7 +69,7 @@ class Submitter:
         alphas =  utils.filter_failed_alphas(alphas)
 
         # 自相关性过滤
-        alphas = self.filter_correlation(alphas)
+        alphas = utils.filter_correlation(self.correlation, alphas)
         print(f'过滤后共 {len(alphas)} 个 Alpha 可提交...')
         for alpha in alphas:
             if self.checkRank:
@@ -105,29 +86,17 @@ class Submitter:
                     # on_finish=lambda vars: print(vars['resp']),
                     # on_success=lambda vars: print(vars['resp']),
                     # on_failure=lambda vars: print(vars['resp']),
-                    log=f'{self}#submit'
+                    log=f'{self.__class__}#submit'
                 )
             ):
                 sussess_count += 1
 
             if sussess_count > self.submit_num:
                 break
-        return True
-
-    def run(self):
-        limit = 100
-        offset = 0
-        sussess_count = 0
-        while True:
-            if not self.submit(limit=limit, offset=offset, sussess_count=sussess_count):
-                break
-            if  sussess_count > self.submit_num:
-                break
-            offset += limit
-
         print(f'共提交 {sussess_count} 个 Alpha...')
         # 做一次增量下载
         self.correlation.download_data(flag_increment=True)
+        return True
 
 
     

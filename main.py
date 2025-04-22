@@ -160,7 +160,7 @@ def main():
             if submit_num_str != '':
                 submit_num = int(submit_num_str)
 
-            Submitter(wqbs=wqbs, submit_num=submit_num, checkRank=checkRank, improve=improve).run()
+            Submitter(wqbs=wqbs, submit_num=submit_num, checkRank=checkRank, improve=improve).submit()
         else:
             
             if mode == 5:

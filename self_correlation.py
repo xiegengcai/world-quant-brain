@@ -167,7 +167,7 @@ class SelfCorrelation:
                 如果 `return_alpha_pnls` 为 True，返回包含最大自相关性值和 alpha PnL 数据的元组。
         """
         if alpha_result is None:
-            alpha_result = self.wqbs.locate_alpha(alpha_id=alpha_id, log=f'{self}#calc_self_corr').json()
+            alpha_result = self.wqbs.locate_alpha(alpha_id=alpha_id, log=f'{self.__class__}#calc_self_corr').json()
         if alpha_pnls is not None:
             if len(alpha_pnls) == 0:
                 alpha_pnls = None

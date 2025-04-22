@@ -2,11 +2,13 @@
 import time
 import wqb
 
+from self_correlation import SelfCorrelation
 import utils
 
 class FavoriteAlpha:
     def __init__(self, wqbs:wqb.WQBSession):
         self.wqbs = wqbs
+        self.correlation = SelfCorrelation(wqbs=wqbs)
         self.searchScope = {'region': 'USA', 'delay': 1, 'universe': 'TOP3000'}
     
     def is_favorable(self,alpha_id:str) -> bool:
@@ -22,12 +24,19 @@ class FavoriteAlpha:
     
     def add_favorite(self,limit:int):
         """添加收藏夹"""
-        alphas = utils.submitable_alphas(wqbs=self.wqbs,limit=limit,others=['favorite=false'])
+        alphas = utils.submitable_alphas(wqbs=self.wqbs,limit=limit, others=['favorite=false'])
         if len(alphas) == 0:
+            print('没有可收藏的 Alpha...')
             return
+        
+        print(f'共 {len(alphas)} 个 Alpha 可收藏...')
         # 过滤
         alphas = utils.filter_failed_alphas(alphas)
-        print(f'过滤后共 {len(alphas)} 个 Alpha 收藏...')
+        print(f'过滤失败项后共 {len(alphas)} 个 Alpha 可收藏...')
+        # 自相关性过滤
+        print(f'开始过滤自相关性(<0.7)...')
+        alphas = utils.filter_correlation(self.correlation, alphas)
+        print(f'过滤后共 {len(alphas)} 个 Alpha 可收藏...')
         batch_num = 0
         for i in range(0,len(alphas),20):
             batch_num += 1

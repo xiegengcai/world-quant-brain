@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import dataset_config
-
+from itertools import product
 
 basic_ops = ["reverse", "inverse", "rank", "zscore", "quantile", "normalize"]
  

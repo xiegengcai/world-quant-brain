@@ -11,6 +11,7 @@ import wqb
 
 from self_correlation import SelfCorrelation
 
+
 def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreated', others:Iterable[str]=None) -> list:
     """可提交的alpha"""
     offset = 0
@@ -116,13 +117,13 @@ def prune(next_alpha_recs, prefix, keep_num):
             output.append([exp,decay])
     return output
 
-def filter_correlation(correlation:SelfCorrelation, alpha_list: list, threshold:float=0.7) -> list:
+def filter_correlation(self_corr:SelfCorrelation, alpha_list: list, threshold:float=0.7) -> list:
     list=[]
-    os_alpha_ids, os_alpha_rets = correlation.load_data()
+    os_alpha_ids, os_alpha_rets = self_corr.load_data()
     # os_alpha_ids, os_alpha_rets =self.correlation.load_data()
     for alpha in alpha_list:
         try:
-            ret = correlation.calc_self_corr(
+            ret = self_corr.calc_self_corr(
                 alpha_id=alpha['id'],
                 os_alpha_rets=os_alpha_rets
                 ,os_alpha_ids=os_alpha_ids
@@ -133,3 +134,34 @@ def filter_correlation(correlation:SelfCorrelation, alpha_list: list, threshold:
             print(f'计算alpha {alpha["id"]} 自相关性失败: {e}')
 
     return list
+
+
+def get_dataset_fields(
+    wqbs: wqb.WQBSession, 
+    dataset_id: str,
+    region: str="USA", 
+    delay: int=1, 
+    universe: str="TOP3000"
+) -> list:
+    """
+    获取数据集的字段
+    """
+    limit = 100
+    offset = 0
+    dataset_fields = []
+    while True:
+        resp = wqbs.search_fields_limited(
+            region=region,
+            delay=delay,
+            universe=universe,
+            dataset_id=dataset_id,
+            limit=limit,
+            offset=offset
+        )
+        data = resp.json()
+        list = data['results']
+        dataset_fields.extend(list) 
+        if len(list) < limit:
+            break
+        offset += limit
+    return dataset_fields

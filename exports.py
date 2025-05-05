@@ -42,6 +42,7 @@ class ExportFiles:
                 "description": item["description"],
                 "category": item["category"]["name"],
                 "subcategory": item["subcategory"]["name"]  # 提取子类名称
+                ,"alphaCount": item["alphaCount"]
             }
             for item in results
         }
@@ -50,6 +51,7 @@ class ExportFiles:
             id = item_id
             name = item_data.get('name', 'N/A')
             description = item_data.get('description', 'N/A')
+            alphaCount = item_data.get('alphaCount', '0')
 
             # 检查是否存在 category，存在才打印
             Category = ''
@@ -98,9 +100,9 @@ class ExportFiles:
                     break
                 offset += limit
             
-            stats_table = "| Region | Delay | Universe |\n"
-            stats_table += "|----|-------------|------|\n"
-            stats_table += f"| {self.searchScope['region']} | {self.searchScope['delay']} | {self.searchScope['universe']} |\n"
+            stats_table = "| Region | Delay | Universe | Alphas |\n"
+            stats_table += "|----|-------------|------|-----|\n"
+            stats_table += f"| {self.searchScope['region']} | {self.searchScope['delay']} | {self.searchScope['universe']} | {alphaCount} |\n"
 
 
             markdown_table = "| id | description | type |\n"

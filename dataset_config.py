@@ -19,6 +19,24 @@ default_settings ={
 }
 
 DATASET_CONFIGS = {
+    'fundamental2': {
+        'id': 'fundamental2',
+        'universe': 'TOP3000',
+        'description': 'Report Footnotes',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 0,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
+    },
     'fundamental6': {
         'id': 'fundamental6',
         'universe': 'TOP3000',
@@ -72,11 +90,136 @@ DATASET_CONFIGS = {
             'language': 'FASTEXPR',
             'visualization': False
         }
+    },'option8': {
+        'id': 'option8',
+        'universe': 'TOP3000',
+        'description': '波动性数据',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 0,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
+    },
+    'option9': {
+        'id': 'option9',
+        'universe': 'Options Analytics',
+        'description': 'US News Data',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 0,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
+    },
+    'news12': {
+        'id': 'news12',
+        'universe': 'TOP3000',
+        'description': 'US News Data',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 0,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
+    },
+    'news18': {
+        'id': 'news18',
+        'universe': 'TOP3000',
+        'description': 'Ravenpack News Data',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 0,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
+    },
+    'socialmedia12': {
+        'id': 'socialmedia12',
+        'universe': 'TOP3000',
+        'description': '股票情绪数据',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 0,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
     },
     'sentiment1': {
         'id': 'sentiment1',
         'universe': 'TOP3000',
         'description': '股市成交量数据',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 0,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
+    },
+    'model51': {
+        'id': 'model51',
+        'universe': 'TOP3000',
+        'description': '系统性风险指标',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 0,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
+    },
+    'model16': {
+        'id': 'model16',
+        'universe': 'TOP3000',
+        'description': 'Fundamental Scores',
         'api_settings': {
             'instrumentType': 'EQUITY',
             'region': 'USA',

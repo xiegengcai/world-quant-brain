@@ -8,7 +8,7 @@ from self_correlation import SelfCorrelation
 import utils
 
 class Submitter:
-    def __init__(self, wqbs: wqb.WQBSession, submit_num:int=2, checkRank:bool=False, improve:int=0):
+    def __init__(self, wqbs: wqb.WQBSession,begin_time:str,end_time:str, submit_num:int=2, checkRank:bool=False, improve:int=0):
         """
         Args:
             wqbs: WQBSession
@@ -16,6 +16,8 @@ class Submitter:
             improve: 提升幅度
         """
         self.wqbs = wqbs
+        self.begin_time = begin_time
+        self.end_time = end_time
         self.submit_num = submit_num
         self.checkRank = checkRank
         self.improve = improve
@@ -59,7 +61,12 @@ class Submitter:
                 
     
     def submit(self, limit:int=500, sussess_count:int=0):
-        alphas = utils.submitable_alphas(wqbs=self.wqbs, limit=limit, order='is.sharpe')
+        alphas = utils.submitable_alphas(
+            wqbs=self.wqbs,
+            start_time=self.begin_time,
+            end_time=self.end_time,
+            limit=limit, order='is.sharpe'
+        )
 
         if len(alphas) == 0:
             print('没有可提交的 Alpha...')

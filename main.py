@@ -93,7 +93,7 @@ def improve_or_simulate(wqbs:wqb.WQBSession, mode:int):
             wqbs
             , dataset_id=dataset_id
             , begin_time=datetime.fromisoformat(f'{begen_date}T00:00:00-05:00')
-            , end_time=datetime.fromisoformat(f'{end_date}T00:00:00-05:00')
+            , end_time=datetime.fromisoformat(f'{end_date}T23:59:59-05:00')
             ,limit=limit
         )
         list = improvement.first_improve()
@@ -160,7 +160,16 @@ def main():
             if submit_num_str != '':
                 submit_num = int(submit_num_str)
 
-            Submitter(wqbs=wqbs, submit_num=submit_num, checkRank=checkRank, improve=improve).submit()
+            begen_date = input("\n请输入开始日期(YYYY-MM-DD): ")
+            end_date = input("\n请输入结束日期(YYYY-MM-DD): ")
+            Submitter(
+                wqbs=wqbs, 
+                begin_time=f"{begen_date}T00:00:00-05:00",
+                end_time=f"{end_date}T23:59:59-05:00",
+                submit_num=submit_num, 
+                checkRank=checkRank, 
+                improve=improve
+            ).submit()
         else:
             
             if mode == 5:
@@ -169,8 +178,13 @@ def main():
                 alpha_num = 200
                 if alpha_num_str != '':
                     alpha_num = int(alpha_num_str)
-                    
-                FavoriteAlpha(wqbs=wqbs).add_favorite(alpha_num)
+                begen_date = input("\n请输入开始日期(YYYY-MM-DD): ")
+                end_date = input("\n请输入结束日期(YYYY-MM-DD): ")
+                FavoriteAlpha(
+                    wqbs=wqbs
+                    , begin_time=f"{begen_date}T00:00:00-05:00"
+                    , end_time=f"{end_date}T23:59:59-05:00"
+                ).add_favorite(alpha_num)
             else:
                 
                 # 生成数据集文件

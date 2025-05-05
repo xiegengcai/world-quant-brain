@@ -89,8 +89,9 @@ class Improvement:
         
         # 不够
         for i in range(len(others)):
-            others[i]=others[i].replace('%3C', '%3C-')
+            others[i]=others[i].replace('%3C', '%3E%3D-')
         # 获取负值
+        print(f"没有足够的Alpha, 反转条件{others}...")
         offset = 0
         while True:
             resp = self.wqbs.filter_alphas_limited(
@@ -268,8 +269,8 @@ if  __name__ == "__main__":
     improvement = Improvement(
             wqbs
         , dataset_id='fundamental6'
-        , begin_time=datetime.fromisoformat('2025-03-25T00:00:00-05:00')
-        , end_time=datetime.fromisoformat('2025-04-09T00:00:00-05:00')
+        , begin_time=datetime.fromisoformat('2025-04-09T00:00:00-05:00')
+        , end_time=datetime.fromisoformat('2025-04-15T23:59:59-05:00')
         ,limit=100
     )
     list=improvement.second_improve()

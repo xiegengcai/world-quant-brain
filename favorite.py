@@ -6,9 +6,11 @@ from self_correlation import SelfCorrelation
 import utils
 
 class FavoriteAlpha:
-    def __init__(self, wqbs:wqb.WQBSession):
+    def __init__(self, wqbs:wqb.WQBSession,begin_time:str,end_time:str):
         self.wqbs = wqbs
         self.correlation = SelfCorrelation(wqbs=wqbs)
+        self.begin_time = begin_time
+        self.end_time = end_time
         self.searchScope = {'region': 'USA', 'delay': 1, 'universe': 'TOP3000'}
     
     def is_favorable(self,alpha_id:str) -> bool:
@@ -24,7 +26,12 @@ class FavoriteAlpha:
     
     def add_favorite(self,limit:int):
         """添加收藏夹"""
-        alphas = utils.submitable_alphas(wqbs=self.wqbs,limit=limit, others=['favorite=false'])
+        alphas = utils.submitable_alphas(
+            wqbs=self.wqbs
+            ,start_time=self.begin_time
+            ,end_time=self.end_time
+            ,limit=limit, others=['favorite=false']
+        )
         if len(alphas) == 0:
             print('没有可收藏的 Alpha...')
             return

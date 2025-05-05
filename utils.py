@@ -12,7 +12,7 @@ import wqb
 from self_correlation import SelfCorrelation
 
 
-def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreated', others:Iterable[str]=None) -> list:
+def submitable_alphas(wqbs: wqb.WQBSession, start_time:str, end_time:str, limit:int=100, order:str='dateCreated', others:Iterable[str]=None) -> list:
     """可提交的alpha"""
     offset = 0
     list = []
@@ -27,6 +27,7 @@ def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreate
             sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
             fitness=wqb.FilterRange.from_str('[1, inf)'),
             turnover=wqb.FilterRange.from_str('(-inf, 0.7]'),
+            date_created=wqb.FilterRange.from_str(f'[{start_time}, {end_time}]'),
             others=others,
             order=order,
             limit=_limit,
@@ -43,12 +44,17 @@ def submitable_alphas(wqbs: wqb.WQBSession, limit:int=100, order:str='dateCreate
         if len(data['results']) < _limit:
             break
         offset += _limit
-    
+    failed_ids = []
+    with open('./results/failed_alphas.txt', 'r') as f:
+        failed_ids = set(line.strip() for line in f)
+    # 过滤掉已处理的 Alpha
+    list = [alpha for alpha in list if alpha['id'] not in failed_ids]
     return list
 
 def filter_failed_alphas(alpha_list: list) -> list:
     """过滤掉有FAIL指标的的alpha"""
     list = []
+    lines = []
     for alpha in alpha_list:
         checks = alpha['is']['checks']
         fail = False
@@ -57,8 +63,10 @@ def filter_failed_alphas(alpha_list: list) -> list:
                 fail = True
                 break
         if fail:
+            lines.append(f"{alpha['id']}\n")
             continue
         list.append(alpha)
+    save_lines_to_file('./results/failed_alphas.txt', lines)
     return list
 
 def is_favorable(wqbs: wqb.WQBSession, alpha_id:str, improve:int=0) -> bool:
@@ -74,7 +82,9 @@ def is_favorable(wqbs: wqb.WQBSession, alpha_id:str, improve:int=0) -> bool:
         return is_favorable(wqbs=wqbs,alpha_id=alpha_id, improve=improve)
     
     score = resp.json()['score']
-    return score['after'] - score['before'] > improve
+    score_diff = score['after'] - score['before']
+    print(f"Alpha {alpha_id} 的Change(名次)为: {score_diff}")
+    return score_diff > improve
 
 def load_credentials(credentials_file: str):
     """从文件加载凭据"""
@@ -119,6 +129,7 @@ def prune(next_alpha_recs, prefix, keep_num):
 
 def filter_correlation(self_corr:SelfCorrelation, alpha_list: list, threshold:float=0.7) -> list:
     list=[]
+    lines = []
     os_alpha_ids, os_alpha_rets = self_corr.load_data()
     # os_alpha_ids, os_alpha_rets =self.correlation.load_data()
     for alpha in alpha_list:
@@ -129,10 +140,11 @@ def filter_correlation(self_corr:SelfCorrelation, alpha_list: list, threshold:fl
                 ,os_alpha_ids=os_alpha_ids
             )
             if ret < threshold:
+                lines.append(f"{alpha['id']}\n")
                 list.append(alpha)
         except Exception as e:
             print(f'计算alpha {alpha["id"]} 自相关性失败: {e}')
-
+    save_lines_to_file('./results/correlation.txt', lines)
     return list
 
 

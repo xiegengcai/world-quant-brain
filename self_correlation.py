@@ -17,6 +17,7 @@ class SelfCorrelation:
     def __init__(self, wqbs: wqb.WQBSession, data_path: str='./results'):
         self.wqbs = wqbs
         self.data_path = data_path
+        np.seterr(divide='ignore',invalid='ignore')
 
     def save_obj(self, obj: object, name: str) -> None:
         """
@@ -269,7 +270,7 @@ if __name__ == '__main__':
     self_corr = SelfCorrelation(wqbs=wqbs, data_path='./results')
     # 增量下载数据
     self_corr.download_data(flag_increment=True)
-    alpha_id = 'LMeEQj6'
+    alpha_id = 'e5WPpz6'
     os_alpha_ids, os_alpha_rets =self_corr.load_data()
     
     rs = self_corr.calc_self_corr(

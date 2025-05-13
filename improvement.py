@@ -53,38 +53,21 @@ class Improvement:
         :return: alpha列表
         """
         date_created_range=wqb.FilterRange.from_str(f"[{self.begin_time.isoformat()}, {self.end_time.isoformat()})")
-        offset = 0
-        # API 最大只能100
-        limit = min(max(self.limit, 1), 100)
-        list =[]
-        while True:
-            resp = self.wqbs.filter_alphas_limited(
-                status='UNSUBMITTED',
-                region=self.region,
-                delay=1,
-                universe='TOP3000',
-                sharpe=wqb.FilterRange.from_str(f'[{sharpe}, inf)'),
-                fitness=wqb.FilterRange.from_str(f'[{fitness}, inf)'),
-                date_created=date_created_range,
-                order='is.sharpe',
-                others=others,
-                limit=limit,
-                offset=offset,
-                log=f"{self.__class__}#get_alphas"
-            )
-            data = resp.json()
-            if offset == 0:
-                print(f"本次查询条件下共有{data['count']}条数据...")
-            list.extend(data['results'])
-            if len(list) >= self.limit:
-                break
-            # 小于本次查询数量limit
-            if len(data['results']) < limit:
-                break
-            offset += limit
-        if len(list) == self.limit:
-            return list
-        if len(list) > self.limit:
+        list = utils.filter_alphas(
+            wqbs=self.wqbs,
+            status='UNSUBMITTED',
+            region=self.region,
+            delay=1,
+            universe='TOP3000',
+            sharpe=wqb.FilterRange.from_str(f'[{sharpe}, inf)'),
+            fitness=wqb.FilterRange.from_str(f'[{fitness}, inf)'),
+            date_created=date_created_range,
+            order='is.sharpe',
+            others=others,
+            log_name=f"{self.__class__}#get_alphas"
+        )
+    
+        if len(list) >= self.limit:
             return list[:self.limit]
         
         # 不够
@@ -92,9 +75,10 @@ class Improvement:
             others[i]=others[i].replace('%3C', '%3E%3D-')
         # 获取负值
         print(f"没有足够的Alpha, 反转条件{others}...")
-        offset = 0
-        while True:
-            resp = self.wqbs.filter_alphas_limited(
+
+        list.extend(
+            utils.filter_alphas(
+                wqbs=self.wqbs,
                 status='UNSUBMITTED',
                 region=self.region,
                 delay=1,
@@ -104,21 +88,10 @@ class Improvement:
                 date_created=date_created_range,
                 order='-is.sharpe',
                 others=others,
-                limit=limit,
-                offset=offset,
-                log=f"{self.__class__}#get_alphas"
+                log_name=f"{self.__class__}#get_alphas"
             )
-            data = resp.json()
-            if offset == 0:
-                print(f"本次查询条件下共有{data['count']}条数据...")
-            list.extend(data['results'])
-            if len(list) >= self.limit:
-                break
-            # 小于本次查询数量limit
-            if len(data['results']) < limit:
-                break
-            offset += limit
-        if len(list) > self.limit:
+        )
+        if len(list) >= self.limit:
             return list[:self.limit]
         return list
         

@@ -98,7 +98,7 @@ class Submitter:
             ):
                 sussess_count += 1
 
-            if sussess_count > self.submit_num:
+            if sussess_count >= self.submit_num:
                 break
         print(f'共提交 {sussess_count} 个 Alpha...')
         # 做一次增量下载

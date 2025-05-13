@@ -233,6 +233,24 @@ DATASET_CONFIGS = {
             'language': 'FASTEXPR',
             'visualization': False
         }
+    },
+    'model77':{
+        'id': 'model77',
+        'universe': 'TOP3000',
+        'description': 'Model/Technical Models',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 6,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
     }
 
 }

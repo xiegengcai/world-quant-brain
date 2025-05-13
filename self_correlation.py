@@ -114,33 +114,12 @@ class SelfCorrelation:
         Returns:
             List[Dict]: 包含alpha信息的字典列表，每个字典表示一个alpha。
         """
-        fetched_alphas = []
-        offset = 0
-        retries = 0
-        total_alphas = 100
-        # while len(fetched_alphas) < total_alphas:
-        while True:
-            res = self.wqbs.filter_alphas_limited(
-                limit=limit,
-                offset=offset,
-                order='-dateSubmitted',
-                others=['stage=OS'],
-                # sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
-                # fitness=wqb.FilterRange.from_str('[1, inf)'),
-                # turnover=wqb.FilterRange.from_str('(-inf, 0.7]')
-                log=f'{self.__class__}#get_os_alphas'
-            ).json()
-
-            if offset == 0:
-                total_alphas = res['count']
-            alphas = res["results"]
-            fetched_alphas.extend(alphas)
-            if len(alphas) < limit:
-                break
-            offset += limit
-            if get_first:
-                break
-        return fetched_alphas[:total_alphas]
+        return utils.filter_alphas(
+            wqbs=self.wqbs,
+            order='-dateSubmitted',
+            others=['stage=OS'],
+            log_name=f'{self.__class__}#get_os_alphas'
+        )
     def calc_self_corr(
         self,
         alpha_id: str,

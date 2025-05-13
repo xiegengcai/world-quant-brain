@@ -12,28 +12,46 @@ import wqb
 from self_correlation import SelfCorrelation
 
 
-def submitable_alphas(wqbs: wqb.WQBSession, start_time:str, end_time:str, limit:int=100, order:str='dateCreated', others:Iterable[str]=None) -> list:
-    """可提交的alpha"""
-    offset = 0
+def filter_alphas(
+    wqbs: wqb.WQBSession,
+    status: str = 'UNSUBMITTED',
+    region: str = 'USA',
+    delay: int = 1,
+    universe: str = 'TOP3000',
+    sharpeFilterRange: wqb.FilterRange = None,
+    fitnessFilterRange: wqb.FilterRange = None,
+    dateCreatedFilterRange: wqb.FilterRange = None,
+    turnoverFilterRange: wqb.FilterRange = None,
+    order: str = 'is.sharpe',
+    others: Iterable[str] = None,
+    limit: int = 2000,
+    log_name: str = None,
+) -> list:
+    """获取alpha列表"""
+    if log_name is None:
+        log_name = f"{self.__class__.__name__}#{filter_alphas.__name__}"
+    
     list = []
-    # API 最大只能100
-    _limit = min(max(limit, 1), 100)
+    page_size = 100
+    offset = 0
     while True:
+        
         resp = wqbs.filter_alphas_limited(
-            status='UNSUBMITTED',
-            region='USA',
-            delay=1,
-            universe='TOP3000',
-            sharpe=wqb.FilterRange.from_str('[1.58, inf)'),
-            fitness=wqb.FilterRange.from_str('[1, inf)'),
-            turnover=wqb.FilterRange.from_str('(-inf, 0.7]'),
-            date_created=wqb.FilterRange.from_str(f'[{start_time}, {end_time}]'),
-            others=others,
+            status=status,
+            region=region,
+            delay=delay,
+            universe=universe,
+            sharpe=sharpeFilterRange,
+            fitness=fitnessFilterRange,
+            turnover=turnoverFilterRange,
+            date_created=dateCreatedFilterRange,
             order=order,
-            limit=_limit,
+            others=others,
+            limit=page_size,
             offset=offset,
-            log="utils#submitable_alphas"
+            log=log_name
         )
+
         data = resp.json()
         if offset == 0:
             print(f"本次查询条件下共有{data['count']}条数据...")
@@ -41,9 +59,28 @@ def submitable_alphas(wqbs: wqb.WQBSession, start_time:str, end_time:str, limit:
         if len(list) >= limit:
             break
         # 小于本次查询数量limit
-        if len(data['results']) < _limit:
+        if len(data['results']) < page_size:
             break
-        offset += _limit
+        offset += page_size
+    return list
+
+def submitable_alphas(wqbs: wqb.WQBSession, start_time:str, end_time:str, limit:int = 50, order:str='dateCreated', others:Iterable[str]=None) -> list:
+    """可提交的alpha"""
+    list = filter_alphas(
+        wqbs=wqbs,
+        status='UNSUBMITTED',
+        region='USA',
+        delay=1,
+        universe='TOP3000',
+        sharpeFilterRange=wqb.FilterRange.from_str('[1.58, inf)'),
+        fitnessFilterRange=wqb.FilterRange.from_str('[1, inf)'),
+        turnoverFilterRange=wqb.FilterRange.from_str('(-inf, 0.7]'),
+        dateCreatedFilterRange=wqb.FilterRange.from_str(f'[{start_time}, {end_time}]'),
+        order=order,
+        others=others,
+        limit=limit,
+        log_name="utils#submitable_alphas"
+    )
     failed_ids = []
     with open('./results/failed_alphas.txt', 'r') as f:
         failed_ids = set(line.strip() for line in f)
@@ -153,27 +190,23 @@ def get_dataset_fields(
     dataset_id: str,
     region: str="USA", 
     delay: int=1, 
-    universe: str="TOP3000"
+    universe: str="TOP3000",
+    offset:int=0
 ) -> list:
     """
     获取数据集的字段
     """
-    limit = 100
-    offset = 0
+
     dataset_fields = []
-    while True:
-        resp = wqbs.search_fields_limited(
-            region=region,
-            delay=delay,
-            universe=universe,
-            dataset_id=dataset_id,
-            limit=limit,
-            offset=offset
-        )
+    resps = wqbs.search_fields(
+        region=region,
+        delay=delay,
+        universe=universe,
+        dataset_id=dataset_id,
+        offset=offset
+    )
+    for idx, resp in enumerate(resps, start=1):
+        # print(f"正在获取第 {idx} 页数据集字段...")
         data = resp.json()
-        list = data['results']
-        dataset_fields.extend(list) 
-        if len(list) < limit:
-            break
-        offset += limit
+        dataset_fields.extend(data['results'])
     return dataset_fields

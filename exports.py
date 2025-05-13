@@ -6,6 +6,8 @@ import os
 import time
 import wqb
 
+import utils
+
 class ExportFiles:
 
     def __init__(self, wqbs:wqb.WQBSession, out_put_path: str):
@@ -19,21 +21,14 @@ class ExportFiles:
         limit = 50
         offset = 0
         results = []
-        while True:
-            resp = self.wqbs.search_datasets_limited(
-                region=self.searchScope['region'],
-                delay=self.searchScope['delay'],
-                universe=self.searchScope['universe'],
-                limit=limit,
-                offset=offset,
-                log=f'{self.__class__}#generate_datasets_file'
-            )
-            data = resp.json()
-            _list = data['results']
-            results.extend(_list)
-            if len(_list) < limit:
-                break
-            offset += limit
+        resps = self.wqbs.search_datasets(
+            region=self.searchScope['region'],
+            delay=self.searchScope['delay'],
+            universe=self.searchScope['universe'],
+            log=f'{self.__class__}#generate_datasets_file'
+        )
+        for resp in resps:
+            results.extend(resp.json()['results'])
 
         # 提取id,name,description,subcategory
         datasets_info = {
@@ -74,31 +69,8 @@ class ExportFiles:
                     Subcategory = subcategory
             cs = f"{Category}/{Subcategory}"
 
-            data_fields = []
+            data_fields = utils.get_data_fields(id)
 
-           
-            offset = 0
-            while True:
-            
-                field_resp = self.wqbs.search_fields_limited(
-                    region=self.searchScope['region'],
-                    delay=self.searchScope['delay'],
-                    universe=self.searchScope['universe'],
-                    dataset_id=id,
-                    log=f'{self.__class__}#generate_datasets_file',
-                    limit=limit,
-                    offset=offset,
-                )
-                data = field_resp.json()
-                _list = data['results']
-                data_fields.extend(_list)
-                # 只有一页
-                if data['count'] < limit:
-                    break
-                # 最后一页了
-                if len(_list) < limit:
-                    break
-                offset += limit
             
             stats_table = "| Region | Delay | Universe | Alphas |\n"
             stats_table += "|----|-------------|------|-----|\n"
@@ -149,26 +121,13 @@ class ExportFiles:
         print(f"SubmittedAlphas.md 文件生成 完成...")
 
     def get_active_alphas(self):
-        limit = 100
-        offset = 0
-        list = []
-        while True:
-            resp = self.wqbs.filter_alphas_limited(
-                status='ACTIVE',
-                region=self.searchScope['region'],
-                delay=self.searchScope['delay'],
-                universe=self.searchScope['universe'],
-                log=f'{self.__class__}#get_active_alphas'
-                , limit=limit,
-                offset=offset
-            )
-            data =resp.json()
-            _list = data['results']
-            list.extend(_list)
-            if len(_list) < limit:
-                break
-            offset += limit
-        return list
+        return utils.filter_alphas(
+            wqbs=self.wqbs,
+            status='ACTIVE',
+            region=self.searchScope['region'],
+            delay=self.searchScope['delay'],
+            log_name=f'{self.__class__}#get_active_alphas'
+        )
 
     def export_submitted_alphas(self):
         print(f"正在导出已提交的Alpha...")

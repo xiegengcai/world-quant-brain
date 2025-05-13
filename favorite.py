@@ -30,7 +30,8 @@ class FavoriteAlpha:
             wqbs=self.wqbs
             ,start_time=self.begin_time
             ,end_time=self.end_time
-            ,limit=limit, others=['favorite=false']
+            ,limit=limit, 
+            others=['favorite=false']
         )
         if len(alphas) == 0:
             print('没有可收藏的 Alpha...')

@@ -160,8 +160,14 @@ def main():
             if submit_num_str != '':
                 submit_num = int(submit_num_str)
 
+            today = datetime.strftime(datetime.now(), "%Y-%m-%d")
+
             begen_date = input("\n请输入开始日期(YYYY-MM-DD): ")
+            if begen_date == "":
+                begen_date = today
             end_date = input("\n请输入结束日期(YYYY-MM-DD): ")
+            if end_date == "":
+                end_date = today
             Submitter(
                 wqbs=wqbs, 
                 begin_time=f"{begen_date}T00:00:00-05:00",
@@ -179,7 +185,13 @@ def main():
                 if alpha_num_str != '':
                     alpha_num = int(alpha_num_str)
                 begen_date = input("\n请输入开始日期(YYYY-MM-DD): ")
+                today = datetime.strftime(datetime.now(), "%Y-%m-%d")
+
+                if begen_date == "":
+                    begen_date = today
                 end_date = input("\n请输入结束日期(YYYY-MM-DD): ")
+                if end_date == "":
+                    end_date = today
                 FavoriteAlpha(
                     wqbs=wqbs
                     , begin_time=f"{begen_date}T00:00:00-05:00"

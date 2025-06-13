@@ -18,6 +18,9 @@ class SelfCorrelation:
         self.wqbs = wqbs
         self.data_path = data_path
         np.seterr(divide='ignore',invalid='ignore')
+        # 增量下载数据
+        self.download_data(flag_increment=True)
+
 
     def save_obj(self, obj: object, name: str) -> None:
         """
@@ -115,7 +118,8 @@ class SelfCorrelation:
             List[Dict]: 包含alpha信息的字典列表，每个字典表示一个alpha。
         """
         return utils.filter_alphas(
-            wqbs=self.wqbs,
+            self.wqbs,
+            status='ACTIVE',
             order='-dateSubmitted',
             others=['stage=OS'],
             log_name=f'{self.__class__}#get_os_alphas'
@@ -123,8 +127,8 @@ class SelfCorrelation:
     def calc_self_corr(
         self,
         alpha_id: str,
-        os_alpha_rets: pd.DataFrame | None = None,
-        os_alpha_ids: dict[str, str] | None = None,
+        # os_alpha_rets: pd.DataFrame | None = None,
+        # os_alpha_ids: dict[str, str] | None = None,
         alpha_result: dict | None = None,
         return_alpha_pnls: bool = False,
         alpha_pnls: pd.DataFrame | None = None
@@ -142,6 +146,7 @@ class SelfCorrelation:
             float | tuple[float, pd.DataFrame]: 如果 `return_alpha_pnls` 为 False，返回最大自相关性值；
                 如果 `return_alpha_pnls` 为 True，返回包含最大自相关性值和 alpha PnL 数据的元组。
         """
+        os_alpha_ids, os_alpha_rets =self.load_data()
         if alpha_result is None:
             alpha_result = self.wqbs.locate_alpha(alpha_id=alpha_id, log=f'{self.__class__}#calc_self_corr').json()
         if alpha_pnls is not None:
@@ -243,18 +248,31 @@ class SelfCorrelation:
         os_alpha_rets = os_alpha_rets[pd.to_datetime(os_alpha_rets.index)>pd.to_datetime(os_alpha_rets.index).max() - pd.DateOffset(years=4)]
         return os_alpha_ids, os_alpha_rets
 
-
+    def filter_correlation(self, alpha_list: list, threshold:float=0.7) -> list:
+        list=[]
+        lines = []
+        print(f'过滤相关性大于{threshold}的Alpha...')
+        os_alpha_ids, os_alpha_rets = self.load_data(tag='SelfCorr')
+        # os_alpha_ids, os_alpha_rets =self.correlation.load_data()
+        for alpha in alpha_list:
+            try:
+                ret = self.calc_self_corr(
+                    alpha_id=alpha['id'],
+                    os_alpha_rets=os_alpha_rets
+                    ,os_alpha_ids=os_alpha_ids
+                )
+                if ret <= threshold:
+                    lines.append(f"{alpha['id']}\n")
+                    list.append(alpha)
+            except Exception as e:
+                print(f'计算alpha {alpha["id"]} 自相关性失败: {e}')
+        utils.save_lines_to_file('./results/correlation.txt', lines)
+        return list
+    
 if __name__ == '__main__':
     wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger())
     self_corr = SelfCorrelation(wqbs=wqbs, data_path='./results')
-    # 增量下载数据
-    self_corr.download_data(flag_increment=True)
-    alpha_id = 'e5WPpz6'
-    os_alpha_ids, os_alpha_rets =self_corr.load_data()
-    
-    rs = self_corr.calc_self_corr(
-        alpha_id=alpha_id,
-        os_alpha_rets=os_alpha_rets,
-        os_alpha_ids=os_alpha_ids,
-    )
+    self_corr.load_data(tag='SelfCorr')
+    alpha_id = 'KVkq76l'
+    rs = self_corr.calc_self_corr(alpha_id)
     print(f'{alpha_id} 的最大自相关性为 {rs}')

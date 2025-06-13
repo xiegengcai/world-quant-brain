@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime,timedelta
+from datetime import datetime
 
 import wqb
 
@@ -31,7 +31,7 @@ def run_simulator(wqbs:wqb.WQBSession, simulator:Simulator):
         if not dataset_id:
             print("❌ 无效的数据集编号")
             return
-        alpha_list = Generator( wqbs=wqbs, dataset_id=dataset_id).generate()
+        alpha_list = Generator(wqbs, dataset_id).generate()
         simulator.simulate_alphas(alpha_list)
 
     else:
@@ -41,10 +41,10 @@ def run_simulator(wqbs:wqb.WQBSession, simulator:Simulator):
         simulator.simulate_with_available(available_path)
 
 def improve_or_simulate(wqbs:wqb.WQBSession, mode:int):
-    simulated_alphas_file = str(input("\n请输入已回测文件路径(默认: ./results/alpha_ids.txt)"))
+    simulated_alphas_file = str(input("\n请输入已回测文件路径(默认: ./results/alpha_ids.csv)"))
     if simulated_alphas_file == "":
         # available_path = "./available_alphas"
-        simulated_alphas_file = "./results/alpha_ids.txt"
+        simulated_alphas_file = "./results/alpha_ids.csv"
         
     print(f"已回测文件路径: {simulated_alphas_file}")
     print("\n📋 请选择身份:")
@@ -82,8 +82,13 @@ def improve_or_simulate(wqbs:wqb.WQBSession, mode:int):
         if not dataset_id:
             print("❌ 无效的数据集编号")
             return
+        today = datetime.strftime(datetime.now(), "%Y-%m-%d")
         begen_date = input("\n请输入开始日期(YYYY-MM-DD): ")
+        if begen_date == "":
+            begen_date = today
         end_date = input("\n请输入结束日期(YYYY-MM-DD): ")
+        if end_date == "":
+            end_date = today
         limit_str = input("\n请输入数据量(默认: 100): ")
         limit = 100
         if limit_str != '':
@@ -114,7 +119,7 @@ def improve_or_simulate(wqbs:wqb.WQBSession, mode:int):
 
 
 def main():
-    
+
     try:
         print("🚀 启动 WorldQuant Brain 程序")
 
@@ -123,7 +128,7 @@ def main():
         if credentials == "":
             credentials = "~/.brain_credentials.txt"
 
-        wqbs= wqb.WQBSession((utils.load_credentials(credentials)), logger=wqb.wqb_logger())
+        wqbs= wqb.WQBSession((utils.load_credentials(credentials)), logger=wqb.wqb_logger(name='logs/wqb_' + datetime.now().strftime('%Y%m%d')))
 
         print("\n📋 请选择运行模式:")
         print("1: 模拟回测")
@@ -169,7 +174,7 @@ def main():
             if end_date == "":
                 end_date = today
             Submitter(
-                wqbs=wqbs, 
+                wqbs, 
                 begin_time=f"{begen_date}T00:00:00-05:00",
                 end_time=f"{end_date}T23:59:59-05:00",
                 submit_num=submit_num, 
@@ -193,7 +198,7 @@ def main():
                 if end_date == "":
                     end_date = today
                 FavoriteAlpha(
-                    wqbs=wqbs
+                    wqbs
                     , begin_time=f"{begen_date}T00:00:00-05:00"
                     , end_time=f"{end_date}T23:59:59-05:00"
                 ).add_favorite(alpha_num)
@@ -204,7 +209,7 @@ def main():
                 if out_put_path == "":
                     out_put_path = "./datasetFile"
                 export = ExportFiles(
-                    wqbs=wqbs
+                    wqbs
                     , out_put_path=out_put_path
                 )
                 if mode == 4:

@@ -122,7 +122,7 @@ if  __name__ == "__main__":
     super_alpha = SuperAlpha(wqbs, 'analyst4')
     # expressions = super_alpha.single_data_set_alphas()
     expressions = super_alpha.generate_super_alphas()
-    simulator = Simulator(wqbs, './results/alpha_ids.txt', False, 30)
+    simulator = Simulator(wqbs, './results/alpha_ids.csv', False, 30)
     simulator.simulate_alphas(expressions)
     # print(expressions)
     # simulator = Simulator(wqbs, expressions)

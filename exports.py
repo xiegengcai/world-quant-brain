@@ -13,7 +13,7 @@ class ExportFiles:
     def __init__(self, wqbs:wqb.WQBSession, out_put_path: str):
         self.wqbs = wqbs
         self.out_put_path = out_put_path
-        self.searchScope = {'region': 'USA', 'delay': 1, 'universe': 'TOP3000'}
+        self.searchScope = {'region': 'USA', 'delay': 1, 'universe': ''}
     def generate_datasets_file(self):
 
         print(f"正在生成数据集文件...")
@@ -69,7 +69,7 @@ class ExportFiles:
                     Subcategory = subcategory
             cs = f"{Category}/{Subcategory}"
 
-            data_fields = utils.get_data_fields(id)
+            data_fields = utils.get_dataset_fields(self.wqbs,id)
 
             
             stats_table = "| Region | Delay | Universe | Alphas |\n"
@@ -122,7 +122,7 @@ class ExportFiles:
 
     def get_active_alphas(self):
         return utils.filter_alphas(
-            wqbs=self.wqbs,
+            self.wqbs,
             status='ACTIVE',
             region=self.searchScope['region'],
             delay=self.searchScope['delay'],

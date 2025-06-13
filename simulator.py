@@ -12,7 +12,7 @@ import utils
 
 
 class Simulator:
-    def __init__(self,  wqbs: wqb.WQBSession, simulated_alphas_file:str, is_consultant:bool=True, batch_size:int=10):
+    def __init__(self,  wqbs: wqb.WQBSession, simulated_alphas_file:str, is_consultant:bool=True, batch_size:int=15):
         self.wqbs = wqbs
         self.simulated_alphas_file = simulated_alphas_file
         self.is_consultant = is_consultant
@@ -44,6 +44,11 @@ class Simulator:
         partitions = [alpha_list[i:i + self.batch_size] for i in range(0,len(alpha_list), self.batch_size)]
         batch_num = 1
         total_batch = len(partitions)
+        
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0',
+            'Referer':'https://platform.worldquantbrain.com/'
+        }
         print(f'分{total_batch}批次，每批次{self.batch_size}个{self.concurrency}线程并发回测...')
         for list in partitions:
             resps = asyncio.run(
@@ -54,16 +59,20 @@ class Simulator:
                     on_nolocation=lambda vars: print(vars['target'], vars['resp'], sep='\n'),
                     on_start=lambda vars: print(vars['url']),
                     on_finish=lambda vars: print(vars['resp']),
-                    on_success=lambda vars: print(vars['resp']),
-                    on_failure=lambda vars: print(vars['resp']),
+                    # on_success=lambda vars: print(vars['resp']),
+                    # on_failure=lambda vars: print(vars['resp']),
+                    headers=headers,
                     log=f'{self.__class__}#pre_consultant_simulate'
                 )
             )
             lines = []
             for idx, resp in enumerate(resps, start=0):
-                if not resp.ok: # 如果回测失败
-                    continue
-                lines.append(f'{utils.hash(alpha_list[idx])}\n')
+                try:
+                    if not resp.ok: # 如果回测失败
+                        continue
+                    lines.append(f'{utils.hash(alpha_list[idx])}\n')
+                except Exception as e:
+                    print(f'回测 {alpha_list[idx]} 失败: {e}')
             
             # 将已处理的 Alpha ID 写入文件中
             utils.save_lines_to_file(self.simulated_alphas_file, lines)
@@ -81,8 +90,8 @@ class Simulator:
                 on_nolocation=lambda vars: print(vars['target'], vars['resp'], sep='\n'),
                 on_start=lambda vars: print(vars['url']),
                 on_finish=lambda vars: print(vars['resp']),
-                on_success=lambda vars: print(vars['resp']),
-                on_failure=lambda vars: print(vars['resp']),
+                # on_success=lambda vars: print(vars['resp']),
+                # on_failure=lambda vars: print(vars['resp']),
                 log=f'{self.__class__}#consultant_simulate'
             )
         )

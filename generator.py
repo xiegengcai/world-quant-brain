@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 import pandas as pd
 import wqb
 
@@ -61,6 +62,7 @@ class Generator:
         pc_fields = self.process_datafields(df, "matrix")
         print(f'📋 处理结束，共{len(pc_fields)}个字段...')
         print(f'📋 开始构建表达式...')
+        # 3. 构建表达式
         first_order = factory.first_order_factory(pc_fields, factory.ts_ops)
         print(f'📋 构建结束，共{len(first_order)}个表达式, 前五个表达式如下: \n{first_order[:5]}')
         return factory.generate_sim_data(self.dataset_id, first_order)

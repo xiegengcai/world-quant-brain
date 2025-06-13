@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 from datetime import datetime
+from itertools import filterfalse
 import random
 from typing import Iterable
 import wqb
@@ -10,6 +11,10 @@ import factory
 from simulator import Simulator
 import utils
 from self_correlation import SelfCorrelation
+
+group_ops = ["group_neutralize", "group_rank", "group_zscore"]
+
+third_ops ='trade_when'
 
 class Improvement:
     """
@@ -34,17 +39,43 @@ class Improvement:
         :param limit: 查询待提升原始数据量
         """
         self.wqbs = wqbs
-        self.dataset_id = dataset_id
+        self.dataset = dataset_config.get_dataset_config(dataset_id)
         self.begin_time = begin_time
         self.end_time = end_time
         self.region = region
         self.limit = limit
         self.correlation = SelfCorrelation(wqbs=wqbs)
 
+
+    def get_alpha_order(self, alpha_expr) -> int:
+        """
+        获取alpha是几阶
+        """
+        if alpha_expr.startswith(third_ops):
+            return 3
+        else:
+            for op in group_ops:
+                if alpha_expr.startswith(op) or alpha_expr.startswith(f'-{op}'):
+                    return 2
+
+        return 1
+    
+    def filtered_alphas(self,alpha_list:list, order):
+        if alpha_list is None:
+            return alpha_list
+
+        filtered_alphas = [
+            alpha for alpha in alpha_list 
+            if self.get_alpha_order(alpha.get('regular', {}).get('code')) == order
+            # 使用 .get() 避免 KeyError
+        ]
+        return filtered_alphas
+
     def get_alphas(self
         , sharpe:float=1.2
         , fitness:float=1.0
-        , others:Iterable[str]=None) -> list:
+        , others:Iterable[str]=None
+    ) -> list:
         """
         获取alpha列表
         :param sharpe: 夏普比率
@@ -59,9 +90,9 @@ class Improvement:
             region=self.region,
             delay=1,
             universe='TOP3000',
-            sharpe=wqb.FilterRange.from_str(f'[{sharpe}, inf)'),
-            fitness=wqb.FilterRange.from_str(f'[{fitness}, inf)'),
-            date_created=date_created_range,
+            sharpeFilterRange=wqb.FilterRange.from_str(f'[{sharpe}, inf)'),
+            fitnessFilterRange=wqb.FilterRange.from_str(f'[{fitness}, inf)'),
+            dateCreatedFilterRange=date_created_range,
             order='is.sharpe',
             others=others,
             log_name=f"{self.__class__}#get_alphas"
@@ -69,6 +100,7 @@ class Improvement:
     
         if len(list) >= self.limit:
             return list[:self.limit]
+        
         
         # 不够
         for i in range(len(others)):
@@ -83,23 +115,25 @@ class Improvement:
                 region=self.region,
                 delay=1,
                 universe='TOP3000',
-                sharpe=wqb.FilterRange.from_str(f'(-inf,{-sharpe}]'),
-                fitness=wqb.FilterRange.from_str(f'(-inf,{-fitness}]'),
-                date_created=date_created_range,
+                sharpeFilterRange=wqb.FilterRange.from_str(f'(-inf,{-sharpe}]'),
+                fitnessFilterRange=wqb.FilterRange.from_str(f'(-inf,{-fitness}]'),
+                dateCreatedFilterRange=date_created_range,
                 order='-is.sharpe',
                 others=others,
                 log_name=f"{self.__class__}#get_alphas"
             )
         )
+
         if len(list) >= self.limit:
             return list[:self.limit]
+        
         return list
         
 
     def first_improve(
             self
-            , sharpe:float=1.2
-            , fitness:float=1.0) -> list:
+            , sharpe:float=1.25
+            , fitness:float=0.75) -> list:
         """
         第一次改进
         :param sharpe: 改进后alpha的夏普比率
@@ -107,20 +141,23 @@ class Improvement:
         :return: 改进后的alpha
         """
         
-        list = self.get_alphas(sharpe, fitness, others=['is.sharpe%3C1.4'])
-        if len(list) == 0:
+        alphas = self.get_alphas(sharpe, fitness, others=['is.sharpe%3C1.4'])
+        if len(alphas) == 0:
             print("没有Alpha可以改进...")
-            return
+            return alphas
+        alphas = self.filtered_alphas(alphas, 1)
+
         # 过滤自相关
-        list = utils.filter_correlation(self.correlation, list, 0.68)
-        if len(list) == 0:
-            print("没有自相关小于0.68的Alpha...")
-        fo_tracker = self.handle_alphas(list, sharpe)
+        # alphas = self.correlation.filter_correlation(alphas,threshold=0.7)
+        # if len(alphas) == 0:
+        #     print("没有自相关小于0.68的Alpha...")
+        #     return alphas
+        fo_tracker = self.handle_alphas(alphas, sharpe)
         
-        fo_layer = self.prune(fo_tracker, self.dataset_id, 5)
-        group_ops = ["group_neutralize", "group_rank", "group_zscore"]
+        fo_layer = self.prune(fo_tracker, 5)
+        
         sim_data_list = []
-        settings = dataset_config.get_api_settings(self.dataset_id)
+        settings = dataset_config.get_api_settings(self.dataset['id'])
         for expr, decay in fo_layer:
             for alpha in factory.get_group_second_order_factory([expr], group_ops, self.region):
                 # 更新decay
@@ -139,7 +176,7 @@ class Improvement:
     def second_improve(
         self
         , sharpe:float=1.4
-        , fitness:float=1.0
+        , fitness:float=0.8
     ) -> list:
         """
         第二次改进
@@ -149,22 +186,34 @@ class Improvement:
         :param fitness: 改进后alpha的fitness
         :return: 改进后的alpha
         """
-        list = self.get_alphas(sharpe, fitness, others=['is.sharpe%3C1.58'])
-        if len(list) == 0:
+        alphas = self.get_alphas(sharpe, fitness, others=['is.sharpe%3C1.58'])
+        if len(alphas) == 0:
             print(f"没有Alpha可以改进...")
-            return
-        # 过滤自相关
-        list = utils.filter_correlation(self.correlation, list, 0.68)
-        if len(list) == 0:
-            print("没有自相关小于0.68的Alpha...")
-        fo_tracker = self.handle_alphas(list, sharpe)
+            return alphas
+        third_alpahs = [
+            alpha for alpha in alphas 
+            if alpha.get('regular', {}).get('code').startswith(third_ops)
+        ]
+        alphas = self.filtered_alphas(alphas, 2)
+
         
-        so_layer = self.prune(fo_tracker, self.dataset_id, 5)
+        # 过滤自相关
+        # list = self.correlation.filter_correlation(alphas,0.68)
+        # if len(list) == 0:
+        #     print("没有自相关小于0.68的Alpha...")
+        #     return list
+        fo_tracker = self.handle_alphas(alphas, sharpe)
+        
+        so_layer = self.prune(fo_tracker, 5)
         sim_data_list = []
-        settings = dataset_config.get_api_settings(self.dataset_id)
+        settings = dataset_config.get_api_settings(self.dataset['id'])
+        
+        skip_cout = 0
         for expr, decay in so_layer:
-            # for alpha in factory.trade_when_factory("trade_when", expr, self.region):
-            for alpha in factory.trade_when_factory("trade_when", expr):
+            for alpha in factory.trade_when_factory(third_ops, expr):
+                if alpha in third_alpahs:
+                    skip_cout += 1
+                    continue
                 # 更新decay
                 settings["decay"] = decay
                 sim_data_list.append({
@@ -172,8 +221,10 @@ class Improvement:
                     'settings': settings,
                     'regular': alpha
                 })
+        
+        print(f'共跳过{skip_cout}个alpha')
         # 为什么要打乱顺序？
-        random.shuffle(sim_data_list)
+        # random.shuffle(sim_data_list)
         print(f'第二次改进后有{len(sim_data_list)}个Alpha')
         print(f'前三个如下：\n{sim_data_list[:3]}')
         return sim_data_list
@@ -199,7 +250,7 @@ class Improvement:
                 
                 decay = alpha["settings"]["decay"]
                 exp = alpha['regular']['code']
-                if sharpe < -sharpe:
+                if sharpe <= -sharpe:
                     exp = "-%s"%exp
                 rec = [alpha_id, exp, sharpe, turnover, fitness, margin, dateCreated, decay]
                 # print(rec)
@@ -219,14 +270,23 @@ class Improvement:
         
         return output
 
-    def prune(self, next_alpha_recs, prefix, keep_num):
+    def prune(self, next_alpha_recs, keep_num):
         # prefix is the datafield prefix, fnd6, mdl175 ...
         # keep_num is the num of top sharpe same-datafield alpha
+        prefix = self.dataset['id']
+        if self.dataset['field_prefix'] is not None:
+            prefix = self.dataset['field_prefix']
         output = []
         num_dict = defaultdict(int)
         for rec in next_alpha_recs:
             exp = rec[1]
-            field = exp.split(prefix)[-1].split(",")[0]
+    
+            if prefix in exp:
+                idx = exp.index(prefix)
+                exp_tmp = exp[idx:-1]
+                field = exp_tmp.split(",")[0]
+            else:
+                field = exp.split(prefix)[-1].split(",")[0]
             sharpe = rec[2]
             if sharpe < 0:
                 field = "-%s"%field
@@ -238,15 +298,21 @@ class Improvement:
         return output
 
 if  __name__ == "__main__":
-    wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger())
+    wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger(name='logs/wqb_' + datetime.now().strftime('%Y%m%d')))
+   
     improvement = Improvement(
             wqbs
-        , dataset_id='fundamental6'
-        , begin_time=datetime.fromisoformat('2025-04-09T00:00:00-05:00')
-        , end_time=datetime.fromisoformat('2025-04-15T23:59:59-05:00')
-        ,limit=100
+        , dataset_id='model77'
+        , begin_time=datetime.fromisoformat('2025-06-10T00:00:00-05:00')
+        , end_time=datetime.fromisoformat('2025-06-12T23:59:59-05:00')
+        ,limit=20000
     )
+    simulator = Simulator(wqbs, "./results/alpha_ids.csv", False)
+    # list=improvement.first_improve()
+    # if  len(list) > 0:
+    #     list = list[465:]
+    #     simulator.simulate_alphas(list)
     list=improvement.second_improve()
+    list=list[170:]
     if  len(list) > 0:
-        simulator = Simulator(wqbs, "./results/alpha_ids.txt", False, 30)
         simulator.simulate_alphas(list)

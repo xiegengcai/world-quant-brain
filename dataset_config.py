@@ -21,6 +21,7 @@ default_settings ={
 DATASET_CONFIGS = {
     'fundamental2': {
         'id': 'fundamental2',
+        'field_prefix': 'fn',
         'universe': 'TOP3000',
         'description': 'Report Footnotes',
         'api_settings': {
@@ -39,6 +40,7 @@ DATASET_CONFIGS = {
     },
     'fundamental6': {
         'id': 'fundamental6',
+        'field_prefix': None,
         'universe': 'TOP3000',
         'description': '基础财务数据',
         'api_settings': {
@@ -57,7 +59,8 @@ DATASET_CONFIGS = {
     },
     'analyst4': {
         'id': 'analyst4',
-        'universe': 'TOP3000',
+        'field_prefix': 'anl4',
+        'universe': 'TOPSP500',
         'description': '分析师预测数据',
         'api_settings': {
             'instrumentType': 'EQUITY',
@@ -75,6 +78,7 @@ DATASET_CONFIGS = {
     },
     'pv1': {
         'id': 'pv1',
+        'field_prefix': None,
         'universe': 'TOP3000',
         'description': '股市成交量数据',
         'api_settings': {
@@ -92,7 +96,8 @@ DATASET_CONFIGS = {
         }
     },'option8': {
         'id': 'option8',
-        'universe': 'TOP3000',
+        'field_prefix': None,
+        'universe': 'TOPSP500',
         'description': '波动性数据',
         'api_settings': {
             'instrumentType': 'EQUITY',
@@ -110,7 +115,8 @@ DATASET_CONFIGS = {
     },
     'option9': {
         'id': 'option9',
-        'universe': 'Options Analytics',
+        'field_prefix': None,
+        'universe': 'TOPSP500',
         'description': 'US News Data',
         'api_settings': {
             'instrumentType': 'EQUITY',
@@ -128,7 +134,8 @@ DATASET_CONFIGS = {
     },
     'news12': {
         'id': 'news12',
-        'universe': 'TOP3000',
+        'field_prefix': 'news',
+        'universe': 'TOP200',
         'description': 'US News Data',
         'api_settings': {
             'instrumentType': 'EQUITY',
@@ -146,7 +153,8 @@ DATASET_CONFIGS = {
     },
     'news18': {
         'id': 'news18',
-        'universe': 'TOP3000',
+        'field_prefix': None,
+        'universe': 'TOP200',
         'description': 'Ravenpack News Data',
         'api_settings': {
             'instrumentType': 'EQUITY',
@@ -164,7 +172,8 @@ DATASET_CONFIGS = {
     },
     'socialmedia12': {
         'id': 'socialmedia12',
-        'universe': 'TOP3000',
+        'field_prefix': 'scl12',
+        'universe': 'TOP500',
         'description': '股票情绪数据',
         'api_settings': {
             'instrumentType': 'EQUITY',
@@ -182,7 +191,8 @@ DATASET_CONFIGS = {
     },
     'sentiment1': {
         'id': 'sentiment1',
-        'universe': 'TOP3000',
+        'field_prefix': 'snt1',
+        'universe': 'TOP500',
         'description': '股市成交量数据',
         'api_settings': {
             'instrumentType': 'EQUITY',
@@ -200,6 +210,7 @@ DATASET_CONFIGS = {
     },
     'model51': {
         'id': 'model51',
+        'field_prefix': None,
         'universe': 'TOP3000',
         'description': '系统性风险指标',
         'api_settings': {
@@ -218,6 +229,7 @@ DATASET_CONFIGS = {
     },
     'model16': {
         'id': 'model16',
+        'field_prefix': None,
         'universe': 'TOP3000',
         'description': 'Fundamental Scores',
         'api_settings': {
@@ -236,6 +248,7 @@ DATASET_CONFIGS = {
     },
     'model77':{
         'id': 'model77',
+        'field_prefix': 'mdl77',
         'universe': 'TOP3000',
         'description': 'Model/Technical Models',
         'api_settings': {
@@ -251,8 +264,45 @@ DATASET_CONFIGS = {
             'language': 'FASTEXPR',
             'visualization': False
         }
+    },
+    'model53':{
+        'id': 'model53',
+        'field_prefix': 'mdl53',
+        'universe': 'TOP3000',
+        'description': 'Creditworthiness Risk Measure Model',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 6,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
+    },
+    'fundamental7':{
+        'id': 'fundamental7',
+        'field_prefix': 'fnd7',
+        'universe': 'TOP3000',
+        'description': 'Comprehensive Fundamentals Data',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 6,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
     }
-
 }
 
 

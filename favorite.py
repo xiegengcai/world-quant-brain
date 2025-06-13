@@ -8,7 +8,7 @@ import utils
 class FavoriteAlpha:
     def __init__(self, wqbs:wqb.WQBSession,begin_time:str,end_time:str):
         self.wqbs = wqbs
-        self.correlation = SelfCorrelation(wqbs=wqbs)
+        self.correlation = SelfCorrelation(self.wqbs)
         self.begin_time = begin_time
         self.end_time = end_time
         self.searchScope = {'region': 'USA', 'delay': 1, 'universe': 'TOP3000'}
@@ -27,7 +27,7 @@ class FavoriteAlpha:
     def add_favorite(self,limit:int):
         """添加收藏夹"""
         alphas = utils.submitable_alphas(
-            wqbs=self.wqbs
+            self.wqbs
             ,start_time=self.begin_time
             ,end_time=self.end_time
             ,limit=limit, 
@@ -39,11 +39,11 @@ class FavoriteAlpha:
         
         print(f'共 {len(alphas)} 个 Alpha 可收藏...')
         # 过滤
-        alphas = utils.filter_failed_alphas(alphas)
+        alphas = utils.filter_failed_alphas(self.wqbs, alphas)
         print(f'过滤失败项后共 {len(alphas)} 个 Alpha 可收藏...')
         # 自相关性过滤
         print(f'开始过滤自相关性(<0.7)...')
-        alphas = utils.filter_correlation(self.correlation, alphas)
+        alphas = self.correlation.filter_correlation(alphas,threshold=0.7)
         print(f'过滤后共 {len(alphas)} 个 Alpha 可收藏...')
         batch_num = 0
         for i in range(0,len(alphas),20):
@@ -52,7 +52,7 @@ class FavoriteAlpha:
             print(f"正在检查第{batch_num}批{len(list)} 个Alpha...")
             favorable_data = []
             for alpha in list:
-                if utils.is_favorable(wqbs=self.wqbs, alpha_id=alpha['id']):
+                if utils.is_favorable(self.wqbs, alpha_id=alpha['id']):
                     favorable_data.append({
                         'id':alpha['id']
                         ,'favorite':True

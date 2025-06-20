@@ -303,16 +303,15 @@ if  __name__ == "__main__":
     improvement = Improvement(
             wqbs
         , dataset_id='model77'
-        , begin_time=datetime.fromisoformat('2025-06-10T00:00:00-05:00')
-        , end_time=datetime.fromisoformat('2025-06-12T23:59:59-05:00')
+        , begin_time=datetime.fromisoformat('2025-06-13T00:00:00-05:00')
+        , end_time=datetime.fromisoformat('2025-06-15T23:59:59-05:00')
         ,limit=20000
     )
     simulator = Simulator(wqbs, "./results/alpha_ids.csv", False)
-    # list=improvement.first_improve()
-    # if  len(list) > 0:
-    #     list = list[465:]
-    #     simulator.simulate_alphas(list)
+    list=improvement.first_improve()
+    list=list[3000:]
+    if  len(list) > 0:
+        simulator.simulate_alphas(list)
     list=improvement.second_improve()
-    list=list[170:]
     if  len(list) > 0:
         simulator.simulate_alphas(list)

@@ -16,10 +16,10 @@ class Simulator:
         self.wqbs = wqbs
         self.simulated_alphas_file = simulated_alphas_file
         self.is_consultant = is_consultant
-        self.concurrency = 10
+        self.concurrency = 8
         self.batch_size = batch_size
         if not self.is_consultant:
-            self.concurrency = 3
+            self.concurrency = 2
         # 确保目录存在
         parent_path = os.path.dirname(os.path.abspath(self.simulated_alphas_file))
         os.makedirs(parent_path, exist_ok=True)
@@ -50,6 +50,7 @@ class Simulator:
             'Referer':'https://platform.worldquantbrain.com/'
         }
         print(f'分{total_batch}批次，每批次{self.batch_size}个{self.concurrency}线程并发回测...')
+        alpha_ids = []
         for list in partitions:
             resps = asyncio.run(
                 self.wqbs.concurrent_simulate(
@@ -71,6 +72,7 @@ class Simulator:
                     if not resp.ok: # 如果回测失败
                         continue
                     lines.append(f'{utils.hash(alpha_list[idx])}\n')
+                    alpha_ids.append(resp.json()['alpha'])
                 except Exception as e:
                     print(f'回测 {alpha_list[idx]} 失败: {e}')
             
@@ -78,6 +80,7 @@ class Simulator:
             utils.save_lines_to_file(self.simulated_alphas_file, lines)
             print(f'批次 {batch_num}/{total_batch} ✅成功：{len(lines)} 个，❌失败：{len(list)-len(lines)} 个...')
             batch_num += 1
+            return alpha_ids
 
     def consultant_simulate(self, alpha_list: list):
         """顾问身份回测"""

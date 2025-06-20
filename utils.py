@@ -50,9 +50,12 @@ def filter_alphas(
             offset=offset,
             log=log_name
         )
-
+        
         data = resp.json()
-        if offset == 0:
+        if not data:
+            print(f"没有符合条件的数据...")
+            break
+        if offset == 0 and data != {}:
             print(f"本次查询条件下共有{data['count']}条数据...")
         list.extend(data['results'])
         if len(list) >= limit:
@@ -332,10 +335,6 @@ def get_pnl_data(wqbs: wqb.WQBSession, alpha_id: str) -> pd.DataFrame:
         return get_pnl_data(wqbs, alpha_id)
 
     return resp.json()
-    # df = pd.DataFrame(pnl['records'], columns=[item['name'] for item in pnl['schema']['properties']])
-    # df = df.rename(columns={'date':'Date', 'pnl':alpha_id})
-    # df = df[['Date', alpha_id]]
-    # return df
 
 def sort_by_grade(alpha_first: dict, alpha_second: dict) -> int:
     """根据alpha的grade排序"""

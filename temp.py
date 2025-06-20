@@ -72,7 +72,7 @@ if __name__ == '__main__':
     # alpha_list = sorted(alpha_list, key=functools.cmp_to_key(utils.sort_by_grade))
     # print(f'{alpha_list[0]["grade"]}, {alpha_list[-1]["grade"]}')
     # alpha_list = []
-    dataset_id = 'model53'
+    dataset_id = 'fundamental7'
 
     neutralization_list = ['MARKET','INDUSTRY','SUBINDUSTRY']  # , 'SUBINDUSTRY']
     group_ops = ["group_neutralize", "group_rank", "group_zscore"]
@@ -99,19 +99,20 @@ if __name__ == '__main__':
     #     for line in f.readlines():
     #         fields.append(line.strip())
 
-    # alpha_list =factory.generate_sim_data(dataset_id, factory.first_order_factory(fields, ts_ops))
+    alpha_list =factory.generate_sim_data(dataset_id, factory.first_order_factory(fields, ts_ops))
     # days = [5,20,60,250]
     # alpha_list = [] 
     # for i,j in combinations(fields,2):
     #     for op in ts_ops:
     #         for day in days:
     #             alpha_list.append(f'{op}({i}-{j},{day})')
-    print(f"共{len(fields)}个字段，前三个如下：\n{fields[:3]}")
-    alpha_list = vector_neut_template(fields)
+    # print(f"共{len(fields)}个字段，前三个如下：\n{fields[:3]}")
+  
+  
     
     # alpha_list = analyst_fac(fields)
-    alpha_list = factory.generate_sim_data(dataset_id, alpha_list)
-    
+    # alpha_list = factory.generate_sim_data(dataset_id, alpha_list)
+    alpha_list=alpha_list[3000:]
     print(f"共{len(alpha_list)}个表达式，前三个表达式如下：\n{alpha_list[:3]}")
 
     Simulator(wqbs, "./results/alpha_ids.csv", False, 30).simulate_alphas(alpha_list)

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # 导入官方库
+import asyncio
 from datetime import datetime
 import json
 import os
@@ -11,19 +12,23 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from self_correlation import SelfCorrelation
+from simulator import Simulator
 import utils
 
-class RobustTester(object):
-    def __init__(self, wqbs: wqb.WQBSession, start_time:str,end_time:str, out_put_path: str, is_consultant:bool=True, batch_size:int=30):
+class RobustTester:
+    def __init__(self
+        , wqbs: wqb.WQBSession
+        , start_time:str
+        ,end_time:str
+        , out_put_path: str
+    ):
         self.wqbs = wqbs
         self.start_time = start_time
         self.end_time = end_time
         self.out_put_path = out_put_path
-        self.is_consultant = is_consultant
-        self.batch_size = batch_size
     
-    def locate_alpha(self, alpha:dict):
-        
+    def locate_alpha(self, alpha_id:str):
+        alpha = self.wqbs.locate_alpha(alpha_id).json()
         sharpe = alpha["is"]["sharpe"]
         fitness = alpha["is"]["fitness"]
         turnover = alpha["is"]["turnover"]
@@ -36,19 +41,44 @@ class RobustTester(object):
         neutralization=alpha["settings"]["neutralization"]
         region=alpha["settings"]["region"]
 
-        triple = [alpha['id'], sharpe, turnover, fitness, margin, exp, region, universe, neutralization, decay, delay, truncation]
-        return triple
-    
-    def build_by_alphabuild_by_alpha(self, alpha:dict):
-        triple = self.locate_alpha(alpha)
+        return [
+            alpha_id
+            , sharpe
+            , turnover
+            , fitness
+            , margin
+            , exp
+            , region
+            , universe
+            , neutralization
+            , decay
+            , delay
+            , truncation
+        ]
+
+    def build_sim_data_list(self, alpha_id:str)-> list:
+        """构建模拟数据"""
         # 初始化对照组 alpha_json 列表
         alpha_line = []
-        # 将 alpha 信息列表解包并赋值给对应的变量
-        [alpha_id, sharpe, turnover, fitness, margin, exp, region,  universe, neutralization, decay, delay, truncation] = alpha_line
+
+        # 获取目标 alpha 信息
+        [alpha_id
+            , sharpe
+            , turnover
+            , fitness
+            , margin
+            , exp
+            , region
+            , universe
+            , neutralization
+            , decay
+            , delay
+            , truncation] = self.locate_alpha(alpha_id)
         # 根据 decay 的值选择不同的 decay_tem 列表
         decay_tem_list = [decay - 5, decay + 5] if decay >= 5 else [decay + 10, decay + 20]
         # 初始化 neutralization_tem 列表
-        neutralization_tem_list = ['SUBINDUSTRY', 'INDUSTRY', 'SECTOR', 'MARKET', 'CROWDING']
+        neutralization_tem_list = ['SUBINDUSTRY', 'INDUSTRY', 'SECTOR', 'MARKET']
+
         # 使用列表推导式生成 simulation_data
         alpha_line.extend(
             {
@@ -75,14 +105,107 @@ class RobustTester(object):
             for neutralization_tem in neutralization_tem_list
         )
         print(f"👨‍💻 共生成了 {len(alpha_line)} 因子表达式.")
-
-    def 
+        return alpha_line
     
-    def run_test(self):
-        alpha_list = utils.submitable_alphas(self.wqbs, self.start_time, self.end_time, limit=500, others=['color!=RED'])
+
+    def get_alpha_data(self, alpha_id_ori:str, alpha_ids:list):
+        """获取模拟运行结果"""
+        # 初始化对比alpha表现的dataframe
+        df_list = pd.DataFrame(columns=['alpha_id', 'neutralization', 'decay', 'sharpe', 'fitness', 'turnover', 'margin'])
+        # 截取目标alpha信息中需要对比的部分
+        # new_row = [alpha_id_ori, neutralization, decay, sharpe, fitness, turnover, margin]
+        # 确保所有变量都已定义且不为None
+        new_row = [
+            alpha_id_ori if 'alpha_id_ori' in locals() else '', 
+            neutralization if 'neutralization' in locals() else 0,
+            decay if 'decay' in locals() else 0,
+            sharpe if 'sharpe' in locals() else 0,
+            fitness if 'fitness' in locals() else 0,
+            turnover if 'turnover' in locals() else 0,
+            margin if 'margin' in locals() else 0
+        ]
+        # 将信息写入对比df
+        df_list.loc[len(df_list)] = new_row
+        print(df_list)
+
+        # 遍历location列表获取对照组alpha的表现
+        for alpha_id in alpha_ids:
+            tem = self.locate_alpha(alpha_id) # 获取alpha_id
+            [alpha_id, sharpe, turnover, fitness, margin, exp, region, universe, neutralization, decay, delay, truncation] = tem
+            new_row = [alpha_id, neutralization, decay, sharpe, fitness, turnover, margin]
+            df_list.loc[len(df_list)] = new_row  # 直接赋值（确保 df 已初始化列名）
+
+        # dataframe去重
+        df_list = df_list.drop_duplicates(subset="alpha_id", keep="first")
+        return df_list
+    
+    def paint(self, alpha_id_ori:str,df_list:list):
+        """绘制对比图"""
+        # 初始化存储PnL的dataframe
+        df1 = pd.DataFrame()
+        # 遍历alpha_id获取PnL并存入dataframe
+        for alpha_id in df_list['alpha_id'].unique():
+            print(alpha_id)
+            json_data = utils.get_pnl_data(self.wqbs, alpha_id)['records']
+            df = pd.DataFrame(json_data)
+            df=df.iloc[:,0:2]
+            df.columns = ['date', alpha_id]
+            df.set_index('date', inplace=True)
+            df1 = pd.merge(df1, df, left_index=True, right_index=True, how='outer')
+        df1.index = pd.to_datetime(df1.index)
+        # 如果需要可以查看这个df
+        # df1
+        # 设置matplotlib
+        # 设置matplotlib
+        plt.rcParams['font.sans-serif'] = ["Microsoft YaHei", "Arial Unicode MS"]  # 兼容win和mac的字体
+        plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+        # 绘制所有列（自动分配颜色和标签）
+        ax = df1.plot(
+            figsize=(14, 7),
+            linewidth=2,
+            title='多时间序列对比',
+            grid=True,
+            alpha=0.8,
+            fontsize=12
+        )
+        # 添加图例和标签
+        ax.set_xlabel('日期', fontsize=12)
+        ax.set_ylabel('数值', fontsize=12)
+        ax.legend(loc='upper left', frameon=True)
+        # print(alpha_id_ori)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        # plt.show()
+        plt.savefig(f'{self.out_put_path}/{alpha_id_ori}_pnl.png')
+        # 对dataframe进行回测
+        # df_sorted = df_list.sort_values("neutralization")
+        # df_multiindex = df_sorted.set_index(["neutralization", "decay"])
+        # df_multiindex.to_csv(f'{self.out_put_path}/{alpha_id_ori}_pnl.csv')
+    
+    def run(self): 
+        start_time=datetime.fromisoformat(f'{self.start_time}T00:00:00-05:00')
+        end_time=datetime.fromisoformat(f'{self.end_time}T00:00:00-05:00')
+        alpha_list = utils.submitable_alphas(self.wqbs, start_time, end_time, limit=500)
         self_corr = SelfCorrelation(self.wqbs, data_path='./results')
         self_corr.load_data(tag='SelfCorr')
-        alpha_list = [alpha for alpha in alpha_list if self_corr.calc_self_corr(alpha['id']) < 0.7]
-
+        alpha_list = [alpha for alpha in alpha_list if self_corr.calc_self_corr(alpha['id']) < 0.6]
+        simulator = Simulator(wqbs, "./results/alpha_ids.csv", False, 30)
         for alpha in alpha_list:
-            
+            alpha_id_ori = alpha['id']
+            sim_data_list = self.build_sim_data_list(alpha_id_ori)
+            alpha_ids = simulator.pre_consultant_simulate(sim_data_list)
+            df_list = self.get_alpha_data(alpha_id_ori, alpha_ids)
+            self.paint(alpha_id_ori, df_list)
+
+if  __name__ == "__main__":
+    wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger(name='logs/wqb_' + datetime.now().strftime('%Y%m%d')))
+    tester = RobustTester(
+        wqbs
+        , start_time='2025-06-19'
+        , end_time='2025-06-19'
+        , out_put_path='./results'
+    )
+    tester.run()
+    # df_list = tester.get_alpha_data('8EMQzRX', ['WovGa7Q','vpWlzkz','RlG8qrg','Lm0R20e','oJxYE52','7vedzoO','aQ5obQO'])
+    # tester.paint('8EMQzRX',df_list)
+   

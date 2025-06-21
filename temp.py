@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-import functools
-from itertools import combinations
-import os
+
 import wqb
 
 import pandas as pd
@@ -46,16 +44,6 @@ def vector_neut_template(fields):
 
 if __name__ == '__main__':
 
-    # files=os.listdir('D:/Downloads/xiaowu')
-    # for filename in files:
-    #     if filename.__contains__('xw ('):
-    #         new_filename=filename.replace('xw (', '').replace(')', '') 
-    #         os.rename(f'D:/Downloads/xiaowu/{filename}', f'D:/Downloads/xiaowu/{new_filename}')
-
-
-    # filter = wqb.FilterRange.from_str('[0.01, 0.7]')
-    
-    # print(filter.to_params('aaa'))
 
     wqbs= wqb.WQBSession((utils.load_credentials("~/.brain_credentials.txt")), logger=wqb.wqb_logger(name='logs/wqb_' + datetime.now().strftime('%Y%m%d')))
 
@@ -81,23 +69,23 @@ if __name__ == '__main__':
     #  'ts_arg_min','ts_decay_linear', 'ts_product','ts_quantile','ts_scale', 'ts_std_dev','ts_sum',
     # , 'MARKET', 'SECTOR'
     # fields = doubao_fields
-    size_fields = ['mdl77_25saleicap','mdl77_2deepvaluefactor_ebitdaev','mdl77_2400_vefcomtt','mdl77_2ad']
-    fields = utils.get_dataset_fields(
-        wqbs, 
-        dataset_id=dataset_id
-    )
-    fields = pd.DataFrame(fields)
+    # size_fields = ['mdl77_25saleicap','mdl77_2deepvaluefactor_ebitdaev','mdl77_2400_vefcomtt','mdl77_2ad']
+    # fields = utils.get_dataset_fields(
+    #     wqbs, 
+    #     dataset_id=dataset_id
+    # )
+    # fields = pd.DataFrame(fields)
     # fields = fields[fields['description'].str.contains(r"Profit|Income|Earning|Revenue", case=False, na=False)].to_dict('records')
     
-    fields = fields[fields['type'] == "MATRIX"]["id"].tolist()
+    # fields = fields[fields['type'] == "MATRIX"]["id"].tolist()
 
     # fields = factory.process_datafields(fields)
     # print(fields)
 
-    # fields = []
-    # with open("./可以尝试的字段.txt", "r") as f:
-    #     for line in f.readlines():
-    #         fields.append(line.strip())
+    fields = []
+    with open("available_alphas/pure_analyst.csv", "r") as f:
+        for line in f.readlines():
+            fields.append(line.strip())
 
     alpha_list =factory.generate_sim_data(dataset_id, factory.first_order_factory(fields, ts_ops))
     # days = [5,20,60,250]
@@ -108,11 +96,7 @@ if __name__ == '__main__':
     #             alpha_list.append(f'{op}({i}-{j},{day})')
     # print(f"共{len(fields)}个字段，前三个如下：\n{fields[:3]}")
   
-  
-    
-    # alpha_list = analyst_fac(fields)
-    # alpha_list = factory.generate_sim_data(dataset_id, alpha_list)
-    alpha_list=alpha_list[3000:]
+
     print(f"共{len(alpha_list)}个表达式，前三个表达式如下：\n{alpha_list[:3]}")
 
     Simulator(wqbs, "./results/alpha_ids.csv", False, 30).simulate_alphas(alpha_list)

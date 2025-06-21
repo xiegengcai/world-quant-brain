@@ -16,15 +16,8 @@ from simulator import Simulator
 import utils
 
 class RobustTester:
-    def __init__(self
-        , wqbs: wqb.WQBSession
-        , start_time:str
-        ,end_time:str
-        , out_put_path: str
-    ):
+    def __init__(self, wqbs: wqb.WQBSession, out_put_path: str):
         self.wqbs = wqbs
-        self.start_time = start_time
-        self.end_time = end_time
         self.out_put_path = out_put_path
     
     def locate_alpha(self, alpha_id:str):
@@ -181,31 +174,32 @@ class RobustTester:
         # df_sorted = df_list.sort_values("neutralization")
         # df_multiindex = df_sorted.set_index(["neutralization", "decay"])
         # df_multiindex.to_csv(f'{self.out_put_path}/{alpha_id_ori}_pnl.csv')
+
     
-    def run(self): 
-        start_time=datetime.fromisoformat(f'{self.start_time}T00:00:00-05:00')
-        end_time=datetime.fromisoformat(f'{self.end_time}T00:00:00-05:00')
-        alpha_list = utils.submitable_alphas(self.wqbs, start_time, end_time, limit=500)
+    def run(self, alpha_list:list): 
+        """运行"""
         self_corr = SelfCorrelation(self.wqbs, data_path='./results')
         self_corr.load_data(tag='SelfCorr')
         alpha_list = [alpha for alpha in alpha_list if self_corr.calc_self_corr(alpha['id']) < 0.6]
+        print(f"过滤自相关大于0.6的数据后剩余{len(alpha_list)}个alpha表达式")
+        if len(alpha_list) == 0:
+            return
         simulator = Simulator(wqbs, "./results/alpha_ids.csv", False, 30)
         for alpha in alpha_list:
             alpha_id_ori = alpha['id']
             sim_data_list = self.build_sim_data_list(alpha_id_ori)
-            alpha_ids = simulator.pre_consultant_simulate(sim_data_list)
+            alpha_ids = simulator.simulate_for_robust(sim_data_list)
             df_list = self.get_alpha_data(alpha_id_ori, alpha_ids)
             self.paint(alpha_id_ori, df_list)
 
 if  __name__ == "__main__":
     wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger(name='logs/wqb_' + datetime.now().strftime('%Y%m%d')))
-    tester = RobustTester(
-        wqbs
-        , start_time='2025-06-19'
-        , end_time='2025-06-19'
-        , out_put_path='./results'
-    )
-    tester.run()
+    tester = RobustTester(wqbs, './results')
+    start_time=datetime.fromisoformat('2025-06-17T00:00:00-05:00')
+    end_time=datetime.fromisoformat('2025-06-18T00:00:00-05:00')
+    # alpha_list = utils.submitable_alphas(wqbs, start_time, end_time, limit=500)
+    alpha_list=[{"id":''}]
+    tester.run(alpha_list)
     # df_list = tester.get_alpha_data('8EMQzRX', ['WovGa7Q','vpWlzkz','RlG8qrg','Lm0R20e','oJxYE52','7vedzoO','aQ5obQO'])
     # tester.paint('8EMQzRX',df_list)
    

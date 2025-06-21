@@ -10,6 +10,10 @@ import wqb
 
 import utils
 
+headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0',
+        'Referer':'https://platform.worldquantbrain.com/'
+    }
 
 class Simulator:
     def __init__(self,  wqbs: wqb.WQBSession, simulated_alphas_file:str, is_consultant:bool=True, batch_size:int=15):
@@ -45,12 +49,8 @@ class Simulator:
         batch_num = 1
         total_batch = len(partitions)
         
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0',
-            'Referer':'https://platform.worldquantbrain.com/'
-        }
+        
         print(f'分{total_batch}批次，每批次{self.batch_size}个{self.concurrency}线程并发回测...')
-        alpha_ids = []
         for list in partitions:
             resps = asyncio.run(
                 self.wqbs.concurrent_simulate(
@@ -72,7 +72,6 @@ class Simulator:
                     if not resp.ok: # 如果回测失败
                         continue
                     lines.append(f'{utils.hash(alpha_list[idx])}\n')
-                    alpha_ids.append(resp.json()['alpha'])
                 except Exception as e:
                     print(f'回测 {alpha_list[idx]} 失败: {e}')
             
@@ -80,7 +79,49 @@ class Simulator:
             utils.save_lines_to_file(self.simulated_alphas_file, lines)
             print(f'批次 {batch_num}/{total_batch} ✅成功：{len(lines)} 个，❌失败：{len(list)-len(lines)} 个...')
             batch_num += 1
+
+    def simulate_for_robust(self, alpha_list: list):
+        """回测 Alpha 列表中的所有 Alpha"""
+        # 检查是否有已处理的 Alpha ID 文件
+        processed_alpha_ids = set()
+    
+        if os.path.exists(self.simulated_alphas_file,):
+            with open(self.simulated_alphas_file, 'r') as f:
+                processed_alpha_ids = set(line.strip() for line in f)
+
+        print(f"已处理的 Alpha 表达式数量：{len(processed_alpha_ids)}")
+        print(f"开始和已处理的 Alpha 表达式进行比对...")
+        # 过滤掉已处理的 Alpha
+        alpha_list = [alpha for alpha in alpha_list if utils.hash(alpha) not in processed_alpha_ids]
+        # 根据 hash 值过滤掉重复的 Alpha 
+        alpha_list = list({utils.hash(alpha): alpha for alpha in alpha_list}.values())
+
+        alpha_ids =[]
+        # 如果没有需要处理的 Alpha，直接退出
+        if not alpha_list:
+            print("所有 Alpha 都已处理完毕，无需继续运行。")
             return alpha_ids
+
+        print(f"共有 {len(alpha_list)} 个未处理的 Alpha 表达式需要回测。")
+        print("开始回测...")
+        lines = []
+        for alpha in alpha_list:
+            resp = self.wqbs.simulate(
+                alpha
+                , return_exceptions=True
+                , on_nolocation=lambda vars: print(vars['target'], vars['resp'], sep='\n')
+                , on_start=lambda vars: print(vars['url'])
+                , on_finish=lambda vars: print(vars['resp'])
+                , log=f'{self.__class__}#simulate_for_robust'
+            )
+            
+            lines.append(f'{utils.hash(alpha)}\n')
+            alpha_ids.append(resp.json()['alpha'])
+            
+        # 将已处理的 Alpha ID 写入文件中
+        utils.save_lines_to_file(self.simulated_alphas_file, lines)
+        return alpha_ids
+
 
     def consultant_simulate(self, alpha_list: list):
         """顾问身份回测"""

@@ -106,14 +106,15 @@ class Simulator:
         print("开始回测...")
         lines = []
         for alpha in alpha_list:
-            resp = self.wqbs.simulate(
+            resp =resp = asyncio.run( self.wqbs.simulate(
                 alpha
                 , return_exceptions=True
                 , on_nolocation=lambda vars: print(vars['target'], vars['resp'], sep='\n')
                 , on_start=lambda vars: print(vars['url'])
                 , on_finish=lambda vars: print(vars['resp'])
                 , log=f'{self.__class__}#simulate_for_robust'
-            )
+            ))
+            print(resp)
             
             lines.append(f'{utils.hash(alpha)}\n')
             alpha_ids.append(resp.json()['alpha'])

@@ -179,7 +179,7 @@ class RobustTester:
     def run(self, alpha_list:list): 
         """运行"""
         self_corr = SelfCorrelation(self.wqbs, data_path='./results')
-        self_corr.load_data(tag='SelfCorr')
+        self_corr.load_data()
         alpha_list = [alpha for alpha in alpha_list if self_corr.calc_self_corr(alpha['id']) < 0.6]
         print(f"过滤自相关大于0.6的数据后剩余{len(alpha_list)}个alpha表达式")
         if len(alpha_list) == 0:
@@ -195,10 +195,10 @@ class RobustTester:
 if  __name__ == "__main__":
     wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger(name='logs/wqb_' + datetime.now().strftime('%Y%m%d')))
     tester = RobustTester(wqbs, './results')
-    start_time=datetime.fromisoformat('2025-06-17T00:00:00-05:00')
-    end_time=datetime.fromisoformat('2025-06-18T00:00:00-05:00')
-    # alpha_list = utils.submitable_alphas(wqbs, start_time, end_time, limit=500)
-    alpha_list=[{"id":''}]
+    start_time=datetime.fromisoformat('2025-06-22T00:00:00-05:00')
+    end_time=datetime.fromisoformat('2025-06-22T00:00:00-05:00')
+    alpha_list = utils.submitable_alphas(wqbs, start_time, end_time, limit=500)
+    # alpha_list=[{"id":''}]
     tester.run(alpha_list)
     # df_list = tester.get_alpha_data('8EMQzRX', ['WovGa7Q','vpWlzkz','RlG8qrg','Lm0R20e','oJxYE52','7vedzoO','aQ5obQO'])
     # tester.paint('8EMQzRX',df_list)

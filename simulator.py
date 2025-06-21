@@ -108,7 +108,6 @@ class Simulator:
         for alpha in alpha_list:
             resp =resp = asyncio.run( self.wqbs.simulate(
                 alpha
-                , return_exceptions=True
                 , on_nolocation=lambda vars: print(vars['target'], vars['resp'], sep='\n')
                 , on_start=lambda vars: print(vars['url'])
                 , on_finish=lambda vars: print(vars['resp'])

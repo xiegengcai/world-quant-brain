@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import asyncio
 import hashlib
 import json
 from os.path import expanduser
@@ -185,28 +184,6 @@ def prune(next_alpha_recs, prefix, keep_num):
             output.append([exp,decay])
     return output
 
-# def filter_correlation(self_corr:SelfCorrelation, alpha_list: list, threshold:float=0.7) -> list:
-#     list=[]
-#     lines = []
-#     print(f'过滤相关性大于{threshold}的Alpha...')
-#     os_alpha_ids, os_alpha_rets = self_corr.load_data()
-#     # os_alpha_ids, os_alpha_rets =self.correlation.load_data()
-#     for alpha in alpha_list:
-#         try:
-#             ret = self_corr.calc_self_corr(
-#                 alpha_id=alpha['id'],
-#                 os_alpha_rets=os_alpha_rets
-#                 ,os_alpha_ids=os_alpha_ids
-#             )
-#             if ret < threshold:
-#                 lines.append(f"{alpha['id']}\n")
-#                 list.append(alpha)
-#         except Exception as e:
-#             print(f'计算alpha {alpha["id"]} 自相关性失败: {e}')
-#     save_lines_to_file('./results/correlation.txt', lines)
-#     return list
-
-
 def get_dataset_fields(
     wqbs: wqb.WQBSession, 
     dataset_id: str,
@@ -237,94 +214,6 @@ def get_dataset_fields(
         dataset_fields.extend(data['results'])
     return dataset_fields
 
-def check(wqbs: wqb.WQBSession, batch_num:int, alpha_ids: list, out_put_path: str, local_check: bool = True, log: str = ''):
-    """检查alpha"""
-    # total = len(alpha_ids)
-    failed_alpha_ids = []
-    patch_data = []
-    start_time = time.time()
-    self_corr = None
-    # if local_check:
-    #     self_corr = SelfCorrelation(wqbs, data_path='./results')
-    for alpha_id in alpha_ids:
-        # if local_check:
-        #     color_data=_local_check(wqbs, alpha_id, failed_alpha_ids, self_corr)
-        # else:
-        color_data=server_check(wqbs, alpha_id, failed_alpha_ids, log=log)
-        patch_data.append(color_data)
-        
-    
-    if len(failed_alpha_ids) > 0:
-        alpha_ids = list(set(alpha_ids) - set(failed_alpha_ids))
-        for id in failed_alpha_ids:
-            patch_data.append({'id': id, 'color': 'RED'})
-
-    patch_resp = wqbs.patch(f'{wqb.WQB_API_URL}/alphas', json=patch_data)
-    
-    if patch_resp.status_code == 200:
-        # 写回文件
-        fail_lines = [f'{id}\n' for id in failed_alpha_ids]
-        pass_lines = [f'{id}\n' for id in alpha_ids]
-        save_lines_to_file(f'{out_put_path}/check_fail_ids.csv', fail_lines)
-        save_lines_to_file(f'{out_put_path}/check_pass_ids.csv', pass_lines)
-        print(f"✅ 第{batch_num}批{len(patch_data)} 个Alpha检查完成...")
-    else:
-        print(f"❌ 第{batch_num}批{len(patch_data)} 个Alpha检查失败...")
-
-    end_time = time.time()
-    print(f"第{batch_num}批耗时: {(end_time - start_time):.2f}秒")
-
-def server_check(wqbs: wqb.WQBSession, alpha_id: str, failed_alpha_ids:list, max_tries: int = range(600), log: str = '') -> dict:
-    """服务器检查alpha"""
-    color = 'GREEN' # 绿色
-    try:
-        resp = asyncio.run(
-            wqbs.check(
-                alpha_id,
-                max_tries=max_tries,
-                on_start=lambda vars: print(vars['url']),
-                on_finish=lambda vars: print(vars['resp']),
-                # on_success=lambda vars: print(vars['resp']),
-                # on_failure=lambda vars: print(vars['resp']),
-                log=log
-            )
-        )
-        data = resp.json()
-        is_check = data['is']['checks']
-        results = [(j['result']).upper() for j in is_check]
-        # 全为pass
-        if len(results) == 8 and len(set(results)) == 1 and 'PASS' in results:
-            if not is_favorable(wqbs, alpha_id,20):
-                color = 'PURPLE' # 紫色
-        else:
-            color='RED'
-            failed_alpha_ids.append(alpha_id)
-        return {
-            'id': alpha_id, 'color':color
-        }
-    except Exception as e:
-        print(f'检查alpha {alpha_id} 失败: {e}')
-        return None
-    
-
-# def _local_check(wqbs: wqb.WQBSession, alpha_id: str, failed_alpha_ids:list, self_corr:SelfCorrelation,threshold:float=0.7)-> dict:
-#     color = 'GREEN' # 绿色
-#     try:
-#         self_corr_val = self_corr.calc_self_corr(alpha_id)
-#         print(f'alpha {alpha_id} 自相关性: {(self_corr_val):.2f}')
-#         if self_corr_val > threshold:
-#             color='RED'
-#             failed_alpha_ids.append(alpha_id)
-#         else:
-#             if not is_favorable(wqbs, alpha_id, 20):
-#                 color = 'PURPLE' # 紫色
-#         return {
-#             'id': alpha_id, 'color':color
-#         }
-#     except Exception as e:
-#         print(f'计算alpha {alpha_id} 自相关性失败: {e}')
-#         return None
-    
 def get_pnl_data(wqbs: wqb.WQBSession, alpha_id: str) -> pd.DataFrame:
     """获取alpha的pnl数据"""
     # 可能会被限流

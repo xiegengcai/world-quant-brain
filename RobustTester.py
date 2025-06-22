@@ -181,12 +181,15 @@ class RobustTester:
         # self_corr = SelfCorrelation(self.wqbs, data_path='./results')
         # self_corr.load_data()
         # alpha_list = [alpha for alpha in alpha_list if self_corr.calc_self_corr(alpha['id']) < 0.6]
-        print(f"过滤自相关大于0.6的数据后剩余{len(alpha_list)}个alpha表达式")
+        # print(f"过滤自相关大于0.6的数据后剩余{len(alpha_list)}个alpha表达式")
         if len(alpha_list) == 0:
             return
         simulator = Simulator(wqbs, "./results/alpha_ids.csv", False, 30)
         for alpha in alpha_list:
-            alpha_id_ori = alpha['id']
+            if type(alpha) == str:
+                alpha_id_ori = alpha
+            else:
+                alpha_id_ori = alpha['id']
             sim_data_list = self.build_sim_data_list(alpha_id_ori)
             alpha_ids = simulator.simulate_for_robust(sim_data_list)
             df_list = self.get_alpha_data(alpha_id_ori, alpha_ids)
@@ -198,8 +201,6 @@ if  __name__ == "__main__":
     start_time=datetime.fromisoformat('2025-06-22T00:00:00-05:00')
     end_time=datetime.fromisoformat('2025-06-22T00:00:00-05:00')
     alpha_list = utils.submitable_alphas(wqbs, start_time, end_time, limit=500)
-    alpha_list=[{"id":'XzGPLx8'},{'id':'26MWZeb'},{'id':'vG8v87r'},{'id':'oG7YGMv'},{'id':'xGqPvel'},{'id':'XzGPLx8'},{'id':'9MY0Voo'}]
+    alpha_list=['9M1agN1']
     tester.run(alpha_list)
-    # df_list = tester.get_alpha_data('8EMQzRX', ['WovGa7Q','vpWlzkz','RlG8qrg','Lm0R20e','oJxYE52','7vedzoO','aQ5obQO'])
-    # tester.paint('8EMQzRX',df_list)
    

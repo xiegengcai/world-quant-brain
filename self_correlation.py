@@ -12,7 +12,8 @@ import numpy as np
 
 import wqb
 
-import utils
+from common import utils
+
 class SelfCorrelation:
     def __init__(self, wqbs: wqb.WQBSession, data_path: str='./results'):
         self.wqbs = wqbs

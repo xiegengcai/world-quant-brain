@@ -274,6 +274,6 @@ if __name__ == '__main__':
     wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger())
     self_corr = SelfCorrelation(wqbs=wqbs, data_path='./results')
     self_corr.load_data(tag='SelfCorr')
-    alpha_id = 'KVkq76l'
+    alpha_id = 'azZgGNw'
     rs = self_corr.calc_self_corr(alpha_id)
     print(f'{alpha_id} 的最大自相关性为 {rs}')

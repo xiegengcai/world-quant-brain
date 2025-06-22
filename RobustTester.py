@@ -201,6 +201,6 @@ if  __name__ == "__main__":
     start_time=datetime.fromisoformat('2025-06-22T00:00:00-05:00')
     end_time=datetime.fromisoformat('2025-06-22T00:00:00-05:00')
     alpha_list = utils.submitable_alphas(wqbs, start_time, end_time, limit=500)
-    alpha_list=['9M1agN1']
+    alpha_list=['QzkoqlM']
     tester.run(alpha_list)
    

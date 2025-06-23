@@ -11,7 +11,6 @@ default_settings ={
     'neutralization': 'SUBINDUSTRY',
     'truncation': 0.08,
     'pasteurization': 'ON',
-    'testPeriod': 'P2Y',
     'unitHandling': 'VERIFY',
     'nanHandling': 'ON',
     'language': 'FASTEXPR',

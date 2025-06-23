@@ -10,9 +10,8 @@ from collections import defaultdict
 import numpy as np
 
 
+import utils
 import wqb
-
-from common import utils
 
 class SelfCorrelation:
     def __init__(self, wqbs: wqb.WQBSession, data_path: str='./results'):
@@ -269,11 +268,3 @@ class SelfCorrelation:
                 print(f'计算alpha {alpha["id"]} 自相关性失败: {e}')
         utils.save_lines_to_file('./results/correlation.txt', lines)
         return list
-    
-if __name__ == '__main__':
-    wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger())
-    self_corr = SelfCorrelation(wqbs=wqbs, data_path='./results')
-    self_corr.load_data(tag='SelfCorr')
-    alpha_id = 'azZgGNw'
-    rs = self_corr.calc_self_corr(alpha_id)
-    print(f'{alpha_id} 的最大自相关性为 {rs}')

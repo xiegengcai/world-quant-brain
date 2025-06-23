@@ -8,6 +8,8 @@ basic_ops = ["reverse", "inverse", "rank", "zscore", "quantile", "normalize"]
 ts_ops = ["ts_rank", "ts_zscore", "ts_delta",  "ts_sum", "ts_delay", 
         "ts_std_dev", "ts_mean",  "ts_arg_min", "ts_arg_max","ts_scale", "ts_quantile"]
 
+group_ops = ["group_neutralize", "group_rank", "group_zscore"]
+
 ops_set = basic_ops + ts_ops
 
 dedefault_settings = {

@@ -126,25 +126,17 @@ def filter_failed_alphas(wqbs:wqb.WQBSession, alpha_list: list) -> list:
 
     return list
 
-def is_favorable(wqbs: wqb.WQBSession, alpha_id:str, improve:int=0) -> bool:
+def is_favorable(wqbs: wqb.WQBSession, alpha_id:str,  iqc_id='IQC2025S2', improve:int=0) -> bool:
     """
     判断 Alpha 是可收藏的
     判断标准：
     1. 该alpha的提交before和after的Change(名次)是否上升大于improve
     """
-    score_diff = get_performance(wqbs, alpha_id)
+    score_diff = wqbs.get_performance(alpha_id=alpha_id, iqc_id=iqc_id)
+
     print(f"Alpha {alpha_id} 的Change(名次)为: {score_diff}")
     return score_diff > improve
 
-def get_performance(wqbs: wqb.WQBSession, alpha_id:str, iqc_id:str = 'IQC2025S2'):
-    """获取alpha的performance"""
-    resp = wqbs.get(f'{wqb.WQB_API_URL}/competitions/{iqc_id}/alphas/{alpha_id}/performance')
-    retry_after = float(resp.headers.get("Retry-After", 0))
-    if retry_after > 0:
-        time.sleep(retry_after)
-        return get_performance(wqbs,alpha_id,iqc_id)
-    score = resp.json()['score']
-    return  score['after'] - score['before']
 
 def load_credentials(credentials_file: str):
     """从文件加载凭据"""

@@ -2,6 +2,7 @@
 
 import asyncio
 import constants
+import utils
 import wqb
 from AlphaMapper import AlphaMapper
 
@@ -64,7 +65,8 @@ class Simulator:
                         failed_count +=1
                         continue
                     data = resp.json()
-                    self.mapper.updateById(alpha_list[idx]['id'], {
+                    hash_id = utils.hash({'regular': data['regular'],'settings':data['settings']})
+                    self.mapper.updateByHashId(hash_id, {
                         'location_id':data['id']
                         , 'alpha_id':data['alpha']
                         , 'status':constants.ALPHA_STATUS_SIMUATED

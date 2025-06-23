@@ -2729,3 +2729,14 @@ class WQBSession(AutoAuthSession):
             self.logger.error(
                 f"Error saving PNL for {alpha_id} (Region: {region}) to {file_path}: {e}"
             )
+
+    def get_performance(self, alpha_id:str, iqc_id:str = 'IQC2025S2'):
+        """获取alpha的performance"""
+        resp = self._wait_get_response(f'{WQB_API_URL}/competitions/{iqc_id}/alphas/{alpha_id}/performance', max_retries=100)
+        if resp.ok:
+            score = resp.json()['score']
+            return  score['after'] - score['before']
+        self.logger.error(f'获取alpha {alpha_id}的performance失败')
+        return None
+    
+    

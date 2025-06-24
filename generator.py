@@ -26,11 +26,7 @@ class Generator:
         :param dataset_id: 数据集id
         """
         self.wqbs = wqbs
-        self.settings = dataset_config.get_api_settings(self.dataset_id )
         self.mapper = AlphaMapper(db_path)
-
-    def __del__(self):
-        self.mapper.__del__()
 
     def process_datafields(self, df, data_type):
         """处理数据字段"""

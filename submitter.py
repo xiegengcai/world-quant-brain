@@ -19,12 +19,12 @@ class Submitter:
     def __del__(self):
         self.mapper.__del__()
 
-    def submit(self):
+    def submit(self, metrics:dict=None):
         success = 0
         page = 0
         with True:
             # 1. 获取所有[status=3, self_corr<={self.self_corr_threshold}]的alpha
-            alpha_list = self.mapper.get_alphas(status=constants.ALPHA_STATUS_CHECKED, self_corr=self.self_corr_threshold,page=page)
+            alpha_list = self.mapper.get_alphas(constants.ALPHA_STATUS_CHECKED, self.self_corr_threshold, metrics ,page=page)
             if len(alpha_list) == 0:
                 print(f'没有[status=3, self_corr<={self.self_corr_threshold}]的alpha...')
                 return

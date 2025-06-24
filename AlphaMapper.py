@@ -30,7 +30,7 @@ class AlphaMapper:
             'parent_id': 'TEXT DEFAULT NULL',
             'step': 'INTEGER NOT NULL',
             'field_prefix': 'TEXT DEFAULT ""',
-            'regular':'TEXT DEFAULT NULL'
+            'regular':'TEXT DEFAULT NULL',
             'settings': 'TEXT NOT NULL',
             'performance': 'INTEGER  DEFAULT 0',
             'self_corr':'REAL DEFAULT 0',
@@ -49,7 +49,6 @@ class AlphaMapper:
             'updated_at': 'TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP',
 
         })
-        self.db.createIndex('hash_id', ['hash_id'])
 
     
     def __del__(self):
@@ -92,18 +91,26 @@ class AlphaMapper:
 
     def get_alphas(
             self
-            , begin_date
-            , end_date
+            , begin_date:str=None
+            , end_date:str=None
             , status:str=constants.ALPHA_STATUS_INIT
             , self_corr:float=None
             , step:int=0
-            , is_data:dict=None 
+            , metrics:dict=None 
             , page_size:int=100
             , page:int=0) -> list:
         """
         获取alpha数据
+        @param begin_date: 开始日期
+        @param end_date: 结束日期
+        @param status: 状态
+        @param self_corr: 自相关性
+        @param step: 阶数
+        @param metrics: 指标数据
+        @param page_size: 每页数量
+        @param page: 页码
         """
-        where = f'status = {status}'
+        where = f'status = "{status}"'
 
         if begin_date:
             where += f' and created_at >= "{begin_date}"'
@@ -114,8 +121,8 @@ class AlphaMapper:
         if step > 0:
             where += f' and step = {step}'
         # 指标数据
-        if is_data:
-            for key, value in is_data.items():
+        if metrics:
+            for key, value in metrics.items():
                 where += f' and ({key} >= {value} or {key} <= -{value})'
 
         return self.db.table('t_alpha').where(where).order('created_at asc').find(page_size, page)

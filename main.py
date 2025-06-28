@@ -2,6 +2,7 @@
 from datetime import datetime
 
 from checker import Checker
+import factory
 from synchronizer import Synchronizer
 import wqb
 
@@ -60,9 +61,9 @@ def main():
                     return
                 generator.generate_first(dataset_id)
             if gen_mode == 2:
-                generator.generate_second()
+                generator.generate_second(factory.group_ops)
             if gen_mode == 3:
-                generator.generate_third()
+                generator.generate_third(factory.third_op)
             if gen_mode == 4:
                 file_path = str(input("\n请输入文件路径: "))
                 fields = []

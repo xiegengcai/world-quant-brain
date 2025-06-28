@@ -12,6 +12,8 @@ group_ops = ["group_neutralize", "group_rank", "group_zscore"]
 
 ops_set = basic_ops + ts_ops
 
+third_op ='trade_when'
+
 dedefault_settings = {
     'instrumentType': 'EQUITY',
     'region': 'USA',

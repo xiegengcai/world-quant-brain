@@ -40,7 +40,7 @@ class AlphaMapper:
             'drawdown':'REAL DEFAULT 0',
             'margin':'REAL DEFAULT 0',
             'fitness':'REAL DEFAULT 0',
-            'margin':'REAL DEFAULT 0',
+            'longCount':'REAL DEFAULT 0',
             'shortCount':'REAL DEFAULT 0',
             'grade': 'TEXT DEFAULT NULL',
             'status': 'TEXT NOT NULL',
@@ -49,10 +49,7 @@ class AlphaMapper:
             'updated_at': 'TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP',
 
         })
-
-    
-    def __del__(self):
-        self.db.close()
+        self.db.createIndex('t_alpha', 'hash_id', 'uidx_hash_id', unique=True)
 
     
     def bath_save(self, simulate_data_list:list, field_prefix:str='', step:int=1):
@@ -71,13 +68,13 @@ class AlphaMapper:
                 'step': step,
                 'type': simulate_data['type'],
                 'field_prefix': field_prefix,
-                'settings': json.dumps(simulate_data['settings']),
+                'settings': json.dumps(simulate_data['settings'], ensure_ascii=False),
                 'regular': simulate_data['regular'],
                 'status': constants.ALPHA_STATUS_INIT,
                 'created_at' : now,
                 'updated_at' : now,
             })
-
+        print(table_data[0])
         self.db.table('t_alpha').data(table_data).add()
 
     def get_alpha(self, alpha:dict):
@@ -141,6 +138,7 @@ class AlphaMapper:
         """
         alpha['updated_at'] = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
         self.db.table('t_alpha').where(f"hash_id = '{hash_id}'").save(alpha)
+        
 
     def updateByLocationId(self, location_id:str, alpha:dict):
         """
@@ -161,3 +159,10 @@ class AlphaMapper:
         判断数据是否存在
         """
         return self.get_alpha({'hash_id': hash_id}) is not None
+    
+    def count(self, where:str) -> int:
+        """
+        统计数量
+        """
+        return self.db.table('t_alpha').where(where).count('id')
+

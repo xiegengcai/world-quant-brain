@@ -96,7 +96,7 @@ class Generator:
         while True:
             alphas = self.mapper.get_alphas(
                 status=constants.ALPHA_STATUS_SYNC
-                ,is_data={constants.IS_SHARPE: sharpe, constants.IS_FITNESS: fitness}
+                ,metrics={constants.IS_SHARPE: sharpe, constants.IS_FITNESS: fitness}
                 , self_corr=0.6
                 , step=1
                 , page=page
@@ -138,7 +138,7 @@ class Generator:
         while True:
             alphas = self.mapper.get_alphas(
                 status=constants.ALPHA_STATUS_SYNC
-                ,is_data={constants.IS_SHARPE: sharpe, constants.IS_FITNESS: fitness}
+                , metrics={constants.IS_SHARPE: sharpe, constants.IS_FITNESS: fitness}
                 , self_corr=0.6
                 , step=2
                 , page=page

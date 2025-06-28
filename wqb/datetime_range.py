@@ -187,10 +187,12 @@ class DatetimeRange(Sequence[datetime]):
     ) -> bool:
         if not isinstance(key, datetime):
             return False
-        return (
-            self.start <= key < self.stop
-            and 0 == ((key - self.start) % self.step).total_seconds()
-        )
+        if self.start <= key < self.stop:
+            td = (key - self.start) % self.step
+            res = 0 == td.days == td.seconds == td.microseconds
+        else:
+            res = False
+        return res
 
     def count(
         self,

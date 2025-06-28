@@ -15,6 +15,12 @@ ALPHA_STATUS_DISCARDED = 'DISCARDED'
 
 IS_SHARPE = 'sharpe'
 IS_FITNESS = 'fitness'
+IS_TURNOVER = 'turnover'
+IS_RETURNS = 'returns'
+IS_DRAWDOWN = 'drawdown'
+IS_LONGCOUNT = 'longCount'
+IS_SHORTCOUNT = 'shortCount'
+IS_MARGIN = 'margin'
 
 STEP_FIRST = 1
 STEP_SECOND = 2

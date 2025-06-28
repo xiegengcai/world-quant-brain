@@ -16,8 +16,6 @@ class Submitter:
         self.self_corr_threshold = self_corr_threshold
         self.submit_num = submit_num
         self.mapper = AlphaMapper(db_path)
-    def __del__(self):
-        self.mapper.__del__()
 
     def submit(self, metrics:dict=None):
         success = 0

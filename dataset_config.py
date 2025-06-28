@@ -309,7 +309,7 @@ def get_dataset_list():
     """获取所有可用数据集列表"""
 
     return [
-        f"{idx+1}: {name} ({config['universe']}) - {config['description']}"
+        f'{idx+1}: {name} ({config['universe']}) - {config['description']}'
         for idx, (name, config) in enumerate(DATASET_CONFIGS.items())
     ]
 

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
+from checker import Checker
+from synchronizer import Synchronizer
 import wqb
 
 import dataset_config
@@ -25,12 +27,14 @@ def main():
         print("\n📋 请选择运行模式:")
         print("1: 生成Alpha")
         print("2: 模拟回测")
-        print("3: 自动提交")
-        print("4: 生成数据集文件")
-        print("5: 导出已提交的Alpha")
+        print("3: 同步指标")
+        print("4: 自相关性检查")
+        print("5: 自动提交")
+        print("6: 生成数据集文件")
+        print("7: 导出已提交的Alpha")
 
         mode = int(input("\n请选择模式 (1-5): "))
-        if mode not in [1, 2, 3, 4]:
+        if mode not in [1, 2, 3, 4,5,6,7]:
             print("❌ 无效的模式选择")
             return
 
@@ -66,11 +70,24 @@ def main():
                     for line in f.readlines():
                         fields.append(line.strip())
                 generator.generate_first_with_fields(fields)
+
         elif mode == 2:
             concurrency = int(input("\n📋 请输入回测并发数: "))
             simulator = Simulator(wqbs, concurrency)
             simulator.simulate()
-        if mode == 3:
+        elif mode == 3:
+            Synchronizer(wqbs).run()
+        elif mode == 4:
+            print(f"\n📋 请选择检查模式：")
+            print("1: 本地检查")
+            print("2: 服务器检查")
+            check_mode = int(input("\n请选择检查模式 (1-2): "))
+            if check_mode not in [1, 2]:
+                print("❌ 无效的检查模式")
+                return
+            checker = Checker(wqbs)
+            checker.check(check_mode)
+        elif mode == 5:
 
             today = datetime.strftime(datetime.now(), "%Y-%m-%d")
             sharpe = float(input("\n请输入Sharpe阈值: "), 1.25)

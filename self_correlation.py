@@ -1,3 +1,4 @@
+import asyncio
 import pandas as pd
 import logging
 import time
@@ -107,23 +108,23 @@ class SelfCorrelation:
         alpha_pnls = pd.concat([alpha_pnls] + list(results), axis=1)
         alpha_pnls.sort_index(inplace=True)
         return alpha_ids, alpha_pnls
-    def get_os_alphas(self, limit: int = 100, get_first: bool = False) -> List[Dict]:
-        """
-        获取OS阶段的alpha列表。
-        此函数通过调用WorldQuant Brain API获取用户的alpha列表，支持分页获取，并可以选择只获取第一个结果。
-        Args:
-            limit (int, optional): 每次请求获取的alpha数量限制。默认为100。
-            get_first (bool, optional): 是否只获取第一次请求的alpha结果。如果为True，则只请求一次。默认为False。
-        Returns:
-            List[Dict]: 包含alpha信息的字典列表，每个字典表示一个alpha。
-        """
-        return utils.filter_alphas(
-            self.wqbs,
-            status='ACTIVE',
-            order='-dateSubmitted',
-            others=['stage=OS'],
-            log_name=f'{self.__class__}#get_os_alphas'
-        )
+    # def get_os_alphas(self, limit: int = 100, get_first: bool = False) -> List[Dict]:
+    #     """
+    #     获取OS阶段的alpha列表。
+    #     此函数通过调用WorldQuant Brain API获取用户的alpha列表，支持分页获取，并可以选择只获取第一个结果。
+    #     Args:
+    #         limit (int, optional): 每次请求获取的alpha数量限制。默认为100。
+    #         get_first (bool, optional): 是否只获取第一次请求的alpha结果。如果为True，则只请求一次。默认为False。
+    #     Returns:
+    #         List[Dict]: 包含alpha信息的字典列表，每个字典表示一个alpha。
+    #     """
+    #     return utils.filter_alphas(
+    #         self.wqbs,
+    #         status='ACTIVE',
+    #         order='-dateSubmitted',
+    #         others=['stage=OS'],
+    #         log_name=f'{self.__class__}#get_os_alphas'
+    #     )
     def calc_self_corr(
         self,
         alpha_id: str,
@@ -148,12 +149,13 @@ class SelfCorrelation:
         """
         os_alpha_ids, os_alpha_rets =self.load_data()
         if alpha_result is None:
-            alpha_result = self.wqbs.locate_alpha(alpha_id=alpha_id, log=f'{self.__class__}#calc_self_corr').json()
+            alpha_result = asyncio.run(self.wqbs.locate_alpha(alpha_id=alpha_id, log=f'{self.__class__}#calc_self_corr')).json()
         if alpha_pnls is not None:
             if len(alpha_pnls) == 0:
                 alpha_pnls = None
         if alpha_pnls is None:
             _, alpha_pnls = self.get_alpha_pnls([alpha_result])
+            # _, alpha_pnls = self.wqbs.get_alpha_pnls_bulk([alpha_result])
             alpha_pnls = alpha_pnls[alpha_id]
         alpha_rets = alpha_pnls - alpha_pnls.ffill().shift(1)
         alpha_rets = alpha_rets[pd.to_datetime(alpha_rets.index)>pd.to_datetime(alpha_rets.index).max() - pd.DateOffset(years=4)]
@@ -212,9 +214,11 @@ class SelfCorrelation:
             ppac_alpha_ids = []
 
         if os_alpha_ids is None:
-            alphas = self.get_os_alphas(limit=100, get_first=False)
+            # alphas = self.get_os_alphas(limit=100, get_first=False)
+            alphas = self.wqbs.get_os_alphas(limit=100, get_first=False)
         else:
-            alphas = self.get_os_alphas(limit=30, get_first=True)
+            # alphas = self.get_os_alphas(limit=30, get_first=True)
+             alphas = self.wqbs.get_os_alphas(limit=100, get_first=True)
 
         alphas = [item for item in alphas if item['id'] not in exist_alpha]
         ppac_alpha_ids += [item['id'] for item in alphas for item_match in item['classifications'] if item_match['name'] == 'Power Pool Alpha']

@@ -21,7 +21,7 @@ class RobustTester:
         self.out_put_path = out_put_path
     
     def locate_alpha(self, alpha_id:str):
-        alpha = self.wqbs.locate_alpha(alpha_id).json()
+        alpha = asyncio.run(self.wqbs.locate_alpha(alpha_id)).json()
         sharpe = alpha["is"]["sharpe"]
         fitness = alpha["is"]["fitness"]
         turnover = alpha["is"]["turnover"]
@@ -184,7 +184,7 @@ class RobustTester:
         # print(f"过滤自相关大于0.6的数据后剩余{len(alpha_list)}个alpha表达式")
         if len(alpha_list) == 0:
             return
-        simulator = Simulator(wqbs, "./results/alpha_ids.csv", False, 30)
+        simulator = Simulator(wqbs, 2)
         for alpha in alpha_list:
             if type(alpha) == str:
                 alpha_id_ori = alpha
@@ -196,11 +196,11 @@ class RobustTester:
             self.paint(alpha_id_ori, df_list)
 
 if  __name__ == "__main__":
-    wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')), logger=wqb.wqb_logger(name='logs/wqb_' + datetime.now().strftime('%Y%m%d')))
+    wqbs= wqb.WQBSession((utils.load_credentials('~/.brain_credentials.txt')))
     tester = RobustTester(wqbs, './results')
     start_time=datetime.fromisoformat('2025-06-22T00:00:00-05:00')
     end_time=datetime.fromisoformat('2025-06-22T00:00:00-05:00')
     alpha_list = utils.submitable_alphas(wqbs, start_time, end_time, limit=500)
-    alpha_list=['QzkoqlM']
+    alpha_list=['dzndQVJ']
     tester.run(alpha_list)
    

@@ -28,7 +28,11 @@ class Connect(object):
         if commit:
             self.getConn().commit()
         return cursor
-    
+    def createIndex(self, tabl, field, indexName, unique=False):
+        unique_str = 'UNIQUE' if unique else ''
+
+        self.getConn().execute(f"CREATE {unique_str} INDEX IF NOT EXISTS " + indexName + " ON " + tabl + "(" + field + ")")
+
     # 关闭数据库连接
     def close(self):
         self.getConn().close()

@@ -15,7 +15,8 @@ class Synchronizer:
         count = self.mapper.count(f'status = "{constants.ALPHA_STATUS_SIMUATED}"')
         print(f'共有{count}个alpha待同步...')
         page = 0
-        page_size = 10
+        failed_count = 0
+        page_size = 100
         while True:
             alphas = self.mapper.get_alphas(status=constants.ALPHA_STATUS_SIMUATED, page_size=page_size, page=page)
             total = len(alphas)

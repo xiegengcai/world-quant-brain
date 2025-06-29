@@ -7,18 +7,20 @@ import os
 import time
 
 # 导入第三方库
+import constants
 import wqb
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from self_correlation import SelfCorrelation
+from AlphaMapper import AlphaMapper
 from simulator import Simulator
 import utils
 
 class RobustTester:
-    def __init__(self, wqbs: wqb.WQBSession, out_put_path: str):
+    def __init__(self, wqbs: wqb.WQBSession, out_put_path: str, data_path:str='./db'):
         self.wqbs = wqbs
         self.out_put_path = out_put_path
+        self.mapper = AlphaMapper(data_path)
     
     def locate_alpha(self, alpha_id:str):
         alpha = asyncio.run(self.wqbs.locate_alpha(alpha_id)).json()
@@ -175,8 +177,19 @@ class RobustTester:
         # df_multiindex = df_sorted.set_index(["neutralization", "decay"])
         # df_multiindex.to_csv(f'{self.out_put_path}/{alpha_id_ori}_pnl.csv')
 
+    def run(self, sharpe: float=1.25, fitness: float=1.0):
+        """运行"""
+        # 获取所有alpha表达式
+        metrics={constants.IS_SHARPE: sharpe, constants.IS_FITNESS: fitness}
+        page = 0
+        # 一次不要跑太多
+        page_size = 5
+        while True:
+            alpha_list = self.mapper.get_alphas(status=constants.ALPHA_STATUS_CHECKED, metrics=metrics)
+            self.do_run(alpha_list)
+
     
-    def run(self, alpha_list:list): 
+    def do_run(self, alpha_list:list): 
         """运行"""
         # self_corr = SelfCorrelation(self.wqbs, data_path='./results')
         # self_corr.load_data()
@@ -184,14 +197,25 @@ class RobustTester:
         # print(f"过滤自相关大于0.6的数据后剩余{len(alpha_list)}个alpha表达式")
         if len(alpha_list) == 0:
             return
+        
+        
         simulator = Simulator(wqbs, 2)
         for alpha in alpha_list:
+            alpha_id_ori = ''
             if type(alpha) == str:
                 alpha_id_ori = alpha
-            else:
-                alpha_id_ori = alpha['id']
+                alpha = self.mapper.get_alpha({'alpha_id': alpha})
+            if alpha is None or (alpha.has_key('status') and alpha['status'] != constants.ALPHA_STATUS_CHECKED):
+                print (f"alpha {alpha_id_ori} is not checked")
+                continue
+            alpha_id_ori = alpha['alpha_id']
             sim_data_list = self.build_sim_data_list(alpha_id_ori)
-            alpha_ids = simulator.simulate_for_robust(sim_data_list)
+            for alpha in sim_data_list:
+                alpha['parent_id'] = alpha_id_ori
+            # 入库
+            self.mapper.bath_save(sim_data_list,step=alpha['step'], parent_id=alpha_id_ori)
+            alpha_ids = []
+            alpha_ids = simulator.do_simulate(sim_data_list, alpha_ids)
             df_list = self.get_alpha_data(alpha_id_ori, alpha_ids)
             self.paint(alpha_id_ori, df_list)
 

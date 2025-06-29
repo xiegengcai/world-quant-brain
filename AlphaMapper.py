@@ -52,7 +52,7 @@ class AlphaMapper:
         self.db.createIndex('t_alpha', 'hash_id', 'uidx_hash_id', unique=True)
 
     
-    def bath_save(self, simulate_data_list:list, field_prefix:str='', step:int=1):
+    def bath_save(self, simulate_data_list:list, field_prefix:str='', step:int=1, parent_id:str=None):
         """"
         批量插入数据
         """
@@ -63,7 +63,7 @@ class AlphaMapper:
             if self.is_exist(hash_id):
                 print(f'数据已存在,跳过: {hash_id}')
                 continue
-            table_data.append({
+            alpha = {
                 'hash_id': hash_id,
                 'step': step,
                 'type': simulate_data['type'],
@@ -73,7 +73,11 @@ class AlphaMapper:
                 'status': constants.ALPHA_STATUS_INIT,
                 'created_at' : now,
                 'updated_at' : now,
-            })
+            }
+            if parent_id is not None:
+                alpha['parent_id'] = parent_id
+            table_data.append(alpha)
+
         print(table_data[0])
         self.db.table('t_alpha').data(table_data).add()
 

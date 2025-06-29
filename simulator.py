@@ -37,7 +37,7 @@ class Simulator:
             page += 1
         print(f'同步结束,成功{count-failed_count},失败{failed_count}...')
     
-    def do_simulate(self, alphas:list)->int:
+    def do_simulate(self, alphas:list, alpha_ids:list = None)->int:
         """回测
         return: 
             list of success alpha, list of failed alpha
@@ -75,6 +75,7 @@ class Simulator:
                     continue
                 data = resp.json()
                 hash_id = alphas[idx]['hash_id']
+                alpha_ids.append(data['alpha'])
                 self.mapper.updateByHashId(hash_id, {
                     'location_id':data['id']
                     , 'alpha_id':data['alpha']

@@ -91,9 +91,19 @@ def main():
         elif mode == 5:
 
             today = datetime.strftime(datetime.now(), "%Y-%m-%d")
-            sharpe = float(input("\n请输入Sharpe阈值: "), 1.25)
-            fitness = float(input("\n请输入Fitness阈值: "), 1.0)
-            self_corr = float(input("\n请输入SelfCorr阈值: "), 0.6)
+            sharpe = 1.25
+            sharpe_str = input("\n请输入Sharpe阈值(默认: 1.25): ")
+            if sharpe_str != "":
+                sharpe = float(sharpe_str, 1.25)
+            fitness = 1.0
+            fitness_str = input("\n请输入Fitness阈值(默认: 1.0): ")
+            if fitness_str != "":
+                fitness = float(fitness_str, 1.0)
+            self_corr = 0.6
+            self_corr_str = input("\n请输入SelfCorr阈值(默认: 0.6): ")
+            if self_corr_str != "":
+                self_corr = float(self_corr_str, 0.6)
+            print(f"📋 输入的阈值: sharpe={sharpe}, fitness={fitness}, self_corr={self_corr}")
             begen_date = input("\n请输入开始日期(YYYY-MM-DD): ")
             if begen_date == "":
                 begen_date = today

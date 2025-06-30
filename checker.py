@@ -40,6 +40,7 @@ class Checker:
             fitness: fitness阈值
         """
         page = 0
+        # 指标太低无需检查
         metrics={constants.IS_SHARPE: sharpe, constants.IS_FITNESS: fitness}
         where = f'status = "{constants.ALPHA_STATUS_SYNC}"'
         for key, value in metrics.items():
@@ -47,12 +48,14 @@ class Checker:
         count = self.mapper.count(where)
         if count == 0:
             print("没有需要检查的alpha了")
+            return
         print(f'共有{count}个alpha待检查...')
         start_time = time.time()
         success_count = 0
         if check_mod == 1:
             self_corr = SelfCorrelation(self.wqbs)
         while True:
+            batch_num = page + 1
             alphas = self.mapper.get_alphas(
                 status=constants.ALPHA_STATUS_SYNC,
                 metrics=metrics,
@@ -62,11 +65,12 @@ class Checker:
                 print("没有需要检查的alpha了")
                 break
 
-            print(f'正在检查{page+1}批, 共{len(alphas)}个alpha...')
+            print(f'正在检查{batch_num}批, 共{len(alphas)}个alpha...')
             if check_mod == 1:
                 success_count += self._local_check(page+1, alphas, self_corr)
             else:
                 success_count += self.server_check(page+1, alphas, max_tries=range(600), log=f'{self.__class__}#check')
+            print(f'第{batch_num}批耗时: {(time.time() - start_time):.2f}秒')
             page += 1
         end_time = time.time()
         print(f'检查结束,成功{success_count},失败{count-success_count}...')

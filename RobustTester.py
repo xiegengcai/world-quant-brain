@@ -185,7 +185,7 @@ class RobustTester:
         # 一次不要跑太多
         page_size = 5
         while True:
-            alpha_list = self.mapper.get_alphas(status=constants.ALPHA_STATUS_CHECKED, metrics=metrics)
+            alpha_list = self.mapper.get_alphas(status=constants.ALPHA_STATUS_CHECKED, metrics=metrics, page=page, page_size=page_size)
             self.do_run(alpha_list)
 
     

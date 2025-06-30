@@ -18,13 +18,15 @@ class Synchronizer:
         failed_count = 0
         page_size = 100
         while True:
+            batch_num = page +1
             alphas = self.mapper.get_alphas(status=constants.ALPHA_STATUS_SIMUATED, page_size=page_size, page=page)
             total = len(alphas)
             if total== 0:
                 break
-            print(f'第{page+1}批次{total}个开始同步...')
-            failed_count += self.sync(alphas)
-            print(f'第{page+1}批次{total}个, ✅成功：{total-failed_count} 个，❌失败：{failed_count} 个...')
+            print(f'第{batch_num}批次{total}个开始同步...')
+            batch_failed = self.sync(alphas)
+            print(f'第{batch_num}批次{total}个, ✅成功：{total-batch_failed} 个，❌失败：{batch_failed} 个...')
+            failed_count += batch_failed
             page += 1
         print(f'同步结束,成功{count-failed_count},失败{failed_count}...')
 

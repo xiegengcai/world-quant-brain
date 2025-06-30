@@ -26,18 +26,22 @@ class Simulator:
         count = self.mapper.count(f'status = "{constants.ALPHA_STATUS_INIT}"')
         print(f'共有{count}个alpha待回测...')
         page = 0
+        alpha_ids = []
         while True:
+            batch_num = page +1
             alphas = self.mapper.get_alphas(page_size=self.batch_size, page=page)
             total = len(alphas)
             if total== 0:
                 break
-            print(f'第{page+1}批次{total}个用{self.concurrency}并发回测...')
-            failed_count = self.do_simulate(alphas)
-            print(f'第{page+1}批次{total}个, ✅成功：{total-failed_count} 个，❌失败：{failed_count} 个...')
+            print(f'第{batch_num}批次{total}个用{self.concurrency}并发回测...')
+            old_len = len(alpha_ids)
+            self.do_simulate(alphas, alpha_ids)
+            incr_count = len(alpha_ids) - old_len
+            print(f'第{batch_num}批次{total}个, ✅成功：{incr_count} 个，❌失败：{total-incr_count} 个...')
             page += 1
-        print(f'同步结束,成功{count-failed_count},失败{failed_count}...')
+        print(f'同步结束,成功{len(alpha_ids)}个,失败{count-len(alpha_ids)}...')
     
-    def do_simulate(self, alphas:list, alpha_ids:list = None)->int:
+    def do_simulate(self, alphas:list, alpha_ids:list = None):
         """回测
         return: 
             list of success alpha, list of failed alpha
@@ -51,8 +55,6 @@ class Simulator:
                 'settings': json.loads(settings),
                 'regular': alpha['regular']
             })
-
-        failed_count = 0
         
         resps = asyncio.run(
                 self.wqbs.concurrent_simulate(
@@ -70,7 +72,7 @@ class Simulator:
         for idx, resp in enumerate(resps, start=0):
             try:
                 if resp is None or (hasattr(resp, 'status_code') and resp.status_code != 200): # 如果回测失败
-                    failed_count +=1
+
                     print(f'回测 {alpha_list[idx]} 失败: status_code={resp.status_code}')
                     continue
                 data = resp.json()
@@ -82,8 +84,6 @@ class Simulator:
                     , 'status':constants.ALPHA_STATUS_SIMUATED
                 }) # 更新alpha
             except Exception as e:
-                failed_count +=1
                 print(f'回测 {alpha_list[idx]} 失败: {e}')
             
-        return failed_count
            

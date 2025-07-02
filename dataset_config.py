@@ -59,7 +59,7 @@ DATASET_CONFIGS = {
     'analyst7':{
         'id': 'analyst7',
         'field_prefix': '',
-        'universe': 'TOPSP3000',
+        'universe': 'TOP3000',
         'description': 'Broker Estimates',
         'api_settings': {
             'instrumentType': 'EQUITY',

@@ -8,7 +8,7 @@ import wqb
 from AlphaMapper import AlphaMapper
 
 class Simulator:
-    def __init__(self,  wqbs: wqb.WQBSession, concurrency: int = 8, batch_size:int=10, db_path:str="./db"):
+    def __init__(self,  wqbs: wqb.WQBSession, concurrency: int = 8, batch_size:int=100, db_path:str="./db"):
         """
         Args:
             wqbs: wqb.WQBSession
@@ -48,6 +48,7 @@ class Simulator:
         """
         # 构造数据
         alpha_list = []
+       
         for alpha in alphas:
             settings = alpha['settings'].replace("'", '"')
             alpha_list.append({
@@ -55,8 +56,25 @@ class Simulator:
                 'settings': json.loads(settings),
                 'regular': alpha['regular']
             })
-        
-        resps = asyncio.run(
+
+        resps = []
+        if self.concurrency >= 3:
+            multi_alphas = wqb.to_multi_alphas(alpha_list, 10)
+            resps = asyncio.run(
+                self.wqbs.concurrent_simulate(
+                    multi_alphas,  # `alphas` or `multi_alphas`
+                    self.concurrency,
+                    return_exceptions=True,
+                    on_nolocation=lambda vars: print(vars['target'], vars['resp'], sep='\n'),
+                    on_start=lambda vars: print(vars['url']),
+                    on_finish=lambda vars: print(vars['resp']),
+                    on_success=lambda vars: print(vars['resp']),
+                    # on_failure=lambda vars: print(vars['resp']),
+                    log=f'{self.__class__}#simulate'
+                )
+            )
+        else:
+            resps = asyncio.run(
                 self.wqbs.concurrent_simulate(
                     alpha_list,
                     self.concurrency,

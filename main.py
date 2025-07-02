@@ -23,7 +23,7 @@ def main():
         if credentials == "":
             credentials = "~/.brain_credentials.txt"
 
-        wqbs= wqb.WQBSession((utils.load_credentials(credentials)), logger=wqb.wqb_logger(name='logs/wqb_' + datetime.now().strftime('%Y%m%d')))
+        wqbs= wqb.WQBSession((utils.load_credentials(credentials)), logger=wqb.wqb_logger(name='wqb_' + datetime.now().strftime('%Y%m%d')))
 
         print("\n📋 请选择运行模式:")
         print("1: 生成Alpha")
@@ -74,6 +74,9 @@ def main():
 
         elif mode == 2:
             concurrency = int(input("\n📋 请输入回测并发数: "))
+            if concurrency > 10:
+                print(f"❌ 并发数不能超过10")
+                concurrency = 10
             simulator = Simulator(wqbs, concurrency)
             simulator.simulate()
         elif mode == 3:

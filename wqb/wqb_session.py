@@ -93,11 +93,9 @@ def print(
     kwargs['flush'] = True
     _print(*args, **kwargs)
 
-
 def wqb_logger(
     *,
     name: str | None = None,
-    log_dir: str = "logs",
 ) -> logging.Logger:
     """
     Returns a pre-configured `logging.Logger` object.
@@ -130,19 +128,6 @@ def wqb_logger(
     logger.addHandler(handler1)
     handler2 = logging.StreamHandler()
     handler2.setLevel(logging.WARNING)
-     # 1. 创建日志文件夹 (如果不存在)
-    if log_dir:  # 确保 log_dir 不是 None 或空字符串
-        os.makedirs(log_dir, exist_ok=True)  # exist_ok=True: 文件夹已存在时不会报错
-
-    # 2. 构建完整的日志文件路径
-    log_file_path = os.path.join(
-        log_dir, f"{logger.name}.log"
-    )  # 使用 os.path.join 拼接路径
-
-    # print("log_file_path", log_file_path)
-    handler1 = logging.FileHandler(
-        log_file_path, encoding="utf-8"
-    )  # 使用完整的日志文件路径
     handler2.setFormatter(
         logging.Formatter(fmt='# %(levelname)s %(asctime)s\n%(message)s\n')
     )

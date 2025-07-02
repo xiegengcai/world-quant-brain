@@ -150,7 +150,11 @@ def load_credentials(credentials_file: str):
 
 def hash(alpha):
     """生成稳定的哈希值"""
-    alpha_string = f"{alpha['regular']}{json.dumps(alpha['settings'], sort_keys=True)}"
+    return hash(alpha['regular'], alpha['settings'])
+
+def hash(regular:str, settings:dict) -> str:
+    """生成稳定的哈希值"""
+    alpha_string = f"{regular}{json.dumps(settings, sort_keys=True)}"
     return hashlib.md5(alpha_string.encode('utf-8')).hexdigest()
 
 def save_lines_to_file(dest_file: str, lines: list):

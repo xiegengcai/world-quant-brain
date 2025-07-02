@@ -56,6 +56,25 @@ DATASET_CONFIGS = {
             'visualization': False
         }
     },
+    'analyst7':{
+        'id': 'analyst7',
+        'field_prefix': '',
+        'universe': 'TOPSP3000',
+        'description': 'Broker Estimates',
+        'api_settings': {
+            'instrumentType': 'EQUITY',
+            'region': 'USA',
+            'delay': 1,
+            'decay': 0,
+            'neutralization': 'SUBINDUSTRY',
+            'truncation': 0.08,
+            'pasteurization': 'ON',
+            'unitHandling': 'VERIFY',
+            'nanHandling': 'ON',
+            'language': 'FASTEXPR',
+            'visualization': False
+        }
+    },
     'analyst4': {
         'id': 'analyst4',
         'field_prefix': 'anl4',

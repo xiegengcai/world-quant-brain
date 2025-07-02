@@ -23,7 +23,7 @@ def main():
         if credentials == "":
             credentials = "~/.brain_credentials.txt"
 
-        wqbs= wqb.WQBSession((utils.load_credentials(credentials)), logger=wqb.wqb_logger(name='wqb_' + datetime.now().strftime('%Y%m%d')))
+        wqbs= wqb.WQBSession((utils.load_credentials(credentials)), logger=wqb.wqb_logger(name='logs/wqb_' + datetime.now().strftime('%Y%m%d')))
 
         print("\n📋 请选择运行模式:")
         print("1: 生成Alpha")

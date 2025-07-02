@@ -8,7 +8,7 @@ import wqb
 from AlphaMapper import AlphaMapper
 
 class Simulator:
-    def __init__(self,  wqbs: wqb.WQBSession, concurrency: int = 8, batch_size:int=30, db_path:str="./db"):
+    def __init__(self,  wqbs: wqb.WQBSession, concurrency: int = 8, batch_size:int=10, db_path:str="./db"):
         """
         Args:
             wqbs: wqb.WQBSession

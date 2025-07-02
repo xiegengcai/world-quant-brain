@@ -2,6 +2,7 @@
 
 
 from collections import defaultdict
+import json
 import pandas as pd
 import constants
 import wqb
@@ -18,6 +19,7 @@ class Generator:
     def __init__(
             self
             , wqbs:wqb.WQBSession
+            , region:str='USA'
             , db_path:str='./db'
         ):
         """
@@ -26,6 +28,7 @@ class Generator:
         :param dataset_id: 数据集id
         """
         self.wqbs = wqbs
+        self.region = region
         self.mapper = AlphaMapper(db_path)
 
     def process_datafields(self, df, data_type):
@@ -82,7 +85,12 @@ class Generator:
         sim_data_list =  factory.generate_sim_data(dataset_id, first_order)
         print(f'📋 生成结束，共{len(sim_data_list)}个alpha...')
         print(f'📋 开始保存alpha...')
-        self.mapper.bath_save(sim_data_list,field_prefix=prefix)
+        _list = []
+        for sim_data in sim_data_list:
+            if self.mapper.is_exist(sim_data['hash_id']):
+                continue
+            _list.append(sim_data)
+        self.mapper.bath_save(_list,field_prefix=prefix)
         print(f'📋 保存结束...')
 
     def generate_second(self, group_ops:list,sharpe: float=1.2, fitness: float=1.0, self_corr: float=0.6):
@@ -109,7 +117,12 @@ class Generator:
             sim_data_list = self._generate_second(group_ops, fo_layer)
             print(f'📋 生成结束，共{len(sim_data_list)}个alpha...')
             print(f'📋 开始保存alpha...')
-            self.mapper.bath_save(sim_data_list,step=2)
+            _list = []
+            for sim_data in sim_data_list:
+                if self.mapper.is_exist(sim_data['hash_id']):
+                    continue
+                _list.append(sim_data)
+            self.mapper.bath_save(_list,step=2)
             page += 1
         
     def _generate_second(self, group_ops:list,fo_layer):
@@ -120,6 +133,7 @@ class Generator:
                 # 更新decay
                 settings["decay"] = decay
                 sim_data_list.append({
+                    'hash_id': utils.hash(alpha, settings),
                     'type': 'REGULAR',
                     'settings': settings,
                     'regular': alpha
@@ -151,7 +165,12 @@ class Generator:
             sim_data_list = self._generate_second(third_op,fo_layer)
             print(f'📋 生成结束，共{len(sim_data_list)}个alpha...')
             print(f'📋 开始保存alpha...')
-            self.mapper.bath_save(sim_data_list,step=3)
+            _list = []
+            for sim_data in sim_data_list:
+                if self.mapper.is_exist(sim_data['hash_id']):
+                    continue
+                _list.append(sim_data)
+            self.mapper.bath_save(_list,step=3)
             page += 1
 
     def _generate_third(self, third_op:str, fo_layer):
@@ -163,6 +182,7 @@ class Generator:
                 settings["decay"] = decay
                 sim_data_list.append({
                     'type': 'REGULAR',
+                    'hash_id': utils.hash(alpha, settings),
                     'settings': settings,
                     'regular': alpha
                 })
@@ -180,18 +200,21 @@ class Generator:
             if (longCount + shortCount) > 100:
                 longCount = alpha["longCount"]
                 shortCount = alpha["shortCount"]
-                alpha_id = alpha["id"]
-                dateCreated = alpha["dateCreated"]
+                alpha_id = alpha["alpha_id"]
+                # dateCreated = alpha["dateCreated"]
                 sharpe = alpha["sharpe"]
                 fitness = alpha["fitness"]
                 turnover = alpha["turnover"]
                 margin = alpha["margin"]
                 
-                decay = alpha["settings"]["decay"]
+                # decay = alpha["settings"]["decay"]
+                # print(alpha["settings"])
+                decay = json.loads(alpha["settings"].replace("'", '"'))["decay"]
                 exp = alpha['regular']
                 if sharpe <= -sharpe:
                     exp = "-%s"%exp
-                rec = [alpha_id, exp, sharpe, turnover, fitness, margin, dateCreated, decay]
+                # rec = [alpha_id, exp, sharpe, turnover, fitness, margin, dateCreated, decay]
+                rec = [alpha_id, exp, sharpe, turnover, fitness, margin, decay, alpha['field_prefix']]
                 # print(rec)
                 if turnover > 0.7:
                     rec.append(decay*4)
@@ -205,18 +228,19 @@ class Generator:
                     rec.append(decay+4)
                 elif turnover > 0.3:
                     rec.append(decay+2)
+                
                 output.append(rec)
-        output.append(alpha['field_prefix'])
+        
         return output
 
     def prune(self,next_alpha_recs, keep_num, prefix:str=''):
         # prefix is the datafield prefix, fnd6, mdl175 ...
         # keep_num is the num of top sharpe same-datafield alpha
-        # 放在最后
-        prefix = next_alpha_recs[-1]
         output = []
         num_dict = defaultdict(int)
         for rec in next_alpha_recs:
+            # 放在最后
+            prefix = rec[len(rec)-1]
             exp = rec[1]
     
             if prefix != '' and prefix in exp:
@@ -230,7 +254,7 @@ class Generator:
                 field = "-%s"%field
             if num_dict[field] < keep_num:
                 num_dict[field] += 1
-                decay = rec[-1]
+                decay = rec[-2]
                 exp = rec[1]
                 output.append([exp,decay])
         return output

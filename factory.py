@@ -3,6 +3,8 @@
 import dataset_config
 from itertools import product
 
+import utils
+
 basic_ops = ["reverse", "inverse", "rank", "zscore", "quantile", "normalize"]
  
 ts_ops = ["ts_rank", "ts_zscore", "ts_delta",  "ts_sum", "ts_delay", 
@@ -14,7 +16,7 @@ ops_set = basic_ops + ts_ops
 
 third_op ='trade_when'
 
-dedefault_settings = {
+default_settings = {
     'instrumentType': 'EQUITY',
     'region': 'USA',
     'universe': 'TOP3000',
@@ -35,11 +37,12 @@ def generate_sim_data(dataset_id:str, alpha_list):
     sim_data_list = []
     settings = dataset_config.get_api_settings(dataset_id)
     if settings is None:
-        settings = dedefault_settings.copy()
+        settings = default_settings.copy()
         
     for regular in alpha_list:
         simulation_data = {
             'type': 'REGULAR',
+            'hash_id': utils.hash(regular, settings),
             'settings': settings,
             'regular': regular
         }

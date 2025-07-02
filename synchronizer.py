@@ -49,6 +49,10 @@ class Synchronizer:
             data = resp.json()
             is_data = data['is']
             err = ''.join([f"{check['name']}:{check['result']}" for check in is_data['checks'] if check['result'] != 'PASS'])
+            grade = ''
+            if data['grade'] is not None:
+                grade = data['grade']
+           
             update_alpha = {
                 'status': constants.ALPHA_STATUS_SYNC
                 , constants.IS_FITNESS: is_data[constants.IS_FITNESS]
@@ -59,7 +63,7 @@ class Synchronizer:
                 , constants.IS_MARGIN: is_data[constants.IS_MARGIN]
                 , constants.IS_TURNOVER: is_data[constants.IS_TURNOVER]
                 , constants.IS_RETURNS: is_data[constants.IS_RETURNS]
-                , 'grade':data['grade']
+                , 'grade':grade
                 , 'description':err
             }
             self.mapper.updateById(alpha['id'], update_alpha)

@@ -41,10 +41,10 @@ class ExportFiles:
             }
             for item in results
         }
-
+        import re
         for item_id, item_data in datasets_info.items():
             id = item_id
-            name = item_data.get('name', 'N/A')
+            name =  re.sub(r'[^a-zA-Z0-9\s]', '', item_data.get('name', 'N/A')) # 去除名称中特殊字符
             description = item_data.get('description', 'N/A')
             alphaCount = item_data.get('alphaCount', '0')
 

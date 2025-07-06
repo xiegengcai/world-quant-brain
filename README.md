@@ -51,7 +51,6 @@ sequenceDiagram
     factory-->>Generator: 返回Alpha
     Generator->>db: 保存Alpha
 
-
     user->>+s: python simulator.py
     s->>+db: 查询待回测Alpha
     db->>-s: 返回待回测Alpha

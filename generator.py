@@ -85,12 +85,8 @@ class Generator:
         sim_data_list =  factory.generate_sim_data(dataset_id, first_order)
         print(f'📋 生成结束，共{len(sim_data_list)}个alpha...')
         print(f'📋 开始保存alpha...')
-        _list = []
-        for sim_data in sim_data_list:
-            if self.mapper.is_exist(sim_data['hash_id']):
-                continue
-            _list.append(sim_data)
-        self.mapper.bath_save(_list,field_prefix=prefix)
+    
+        self.mapper.bath_save(sim_data_list,field_prefix=prefix)
         print(f'📋 保存结束...')
 
     def generate_second(self, group_ops:list,sharpe: float=1.2, fitness: float=1.0, self_corr: float=0.6):
@@ -117,12 +113,8 @@ class Generator:
             sim_data_list = self._generate_second(group_ops, fo_layer)
             print(f'📋 生成结束，共{len(sim_data_list)}个alpha...')
             print(f'📋 开始保存alpha...')
-            _list = []
-            for sim_data in sim_data_list:
-                if self.mapper.is_exist(sim_data['hash_id']):
-                    continue
-                _list.append(sim_data)
-            self.mapper.bath_save(_list,step=2)
+           
+            self.mapper.bath_save(sim_data_list,step=2)
             page += 1
         
     def _generate_second(self, group_ops:list,fo_layer):
@@ -133,7 +125,6 @@ class Generator:
                 # 更新decay
                 settings["decay"] = decay
                 sim_data_list.append({
-                    'hash_id': utils.hash(alpha, settings),
                     'type': 'REGULAR',
                     'settings': settings,
                     'regular': alpha
@@ -165,12 +156,8 @@ class Generator:
             sim_data_list = self._generate_second(third_op,fo_layer)
             print(f'📋 生成结束，共{len(sim_data_list)}个alpha...')
             print(f'📋 开始保存alpha...')
-            _list = []
-            for sim_data in sim_data_list:
-                if self.mapper.is_exist(sim_data['hash_id']):
-                    continue
-                _list.append(sim_data)
-            self.mapper.bath_save(_list,step=3)
+            
+            self.mapper.bath_save(sim_data_list,step=3)
             page += 1
 
     def _generate_third(self, third_op:str, fo_layer):
@@ -182,7 +169,6 @@ class Generator:
                 settings["decay"] = decay
                 sim_data_list.append({
                     'type': 'REGULAR',
-                    'hash_id': utils.hash(alpha, settings),
                     'settings': settings,
                     'regular': alpha
                 })

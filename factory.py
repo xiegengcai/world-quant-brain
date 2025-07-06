@@ -42,7 +42,6 @@ def generate_sim_data(dataset_id:str, alpha_list):
     for regular in alpha_list:
         simulation_data = {
             'type': 'REGULAR',
-            'hash_id': utils.hash(regular, settings),
             'settings': settings,
             'regular': regular
         }

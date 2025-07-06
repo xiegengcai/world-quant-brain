@@ -135,10 +135,3 @@ class Checker:
         print(f"第{batch_num}批耗时: {(end_time - start_time):.2f}秒")
         return success_count
                 
-        
-if __name__ == '__main__':
-    
-    wqbs= wqb.WQBSession((utils.load_credentials("~/.brain_credentials.txt")), logger=wqb.wqb_logger(name='wqb_' + datetime.now().strftime('%Y%m%d')))
-    Checker(
-        wqbs, 
-    ).check(1)

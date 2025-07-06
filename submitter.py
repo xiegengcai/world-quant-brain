@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 import constants
+import utils
 import wqb
 from AlphaMapper import AlphaMapper
 
@@ -28,7 +30,7 @@ class Submitter:
                 return
             # 2. 提交
             for alpha in alpha_list:
-                resp = self.wqbs.submit(alpha_id=alpha['alpha_id'], log=f'{self.__class__}#submit')
+                resp = self.wqbs.submit(alpha_id=alpha['alpha_id'], log=f'{self.__class__}#submit', got_201=True)
                 # 3. 更新状态
                 if resp.ok:
                     success += 1

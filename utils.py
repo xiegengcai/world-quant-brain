@@ -148,14 +148,24 @@ def load_credentials(credentials_file: str):
         print(f"Failed to load credentials: {str(e)}")
         raise
 
-def hash(alpha):
+def hash(simulation_data:dict) -> str:
     """生成稳定的哈希值"""
-    return hash(alpha['regular'], alpha['settings'])
-
-def hash(regular:str, settings:dict) -> str:
-    """生成稳定的哈希值"""
-    alpha_string = f"{regular}{json.dumps(settings, sort_keys=True)}"
-    return hashlib.md5(alpha_string.encode('utf-8')).hexdigest()
+    parts = []
+    
+    # 处理常规字段
+    regular_keys = sorted([k for k in simulation_data if k != 'settings'])
+    for key in regular_keys:
+        parts.append(f"{key}={simulation_data[key]}&")
+    
+    # 特殊处理settings字典
+    if 'settings' in simulation_data and isinstance(simulation_data['settings'], dict):
+        settings = simulation_data['settings']
+        for key in sorted(settings):
+            parts.append(f"{key}={settings[key]}&")
+    
+    # 拼接所有部分并生成哈希
+    param_kv_str = ''.join(parts)
+    return hashlib.md5(param_kv_str.encode('utf-8')).hexdigest()
 
 def save_lines_to_file(dest_file: str, lines: list):
     """保存内容到文件"""

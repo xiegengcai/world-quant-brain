@@ -15,7 +15,6 @@ from requests.auth import HTTPBasicAuth
 from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
-
 from . import (
     GET,
     POST,
@@ -62,7 +61,7 @@ from .wqb_urls import (
     WQB_API_URL,
 )
 
-__all__ = ["print", "wqb_logger", "to_multi_alphas", "concurrent_await", "WQBSession"]
+__all__ = ['print', 'wqb_logger', 'to_multi_alphas', 'concurrent_await', 'WQBSession']
 
 
 _print = print
@@ -90,7 +89,7 @@ def print(
     `args` and `kwargs` are passed to the built-in `print`. `flush` is
     overridden to True no matter what.
     """
-    kwargs["flush"] = True
+    kwargs['flush'] = True
     _print(*args, **kwargs)
 
 
@@ -250,7 +249,7 @@ async def concurrent_await(
         return result
 
     return await asyncio.gather(
-        *[semaphore_wrapper(awaitable) for awaitable in awaitables],
+        *(semaphore_wrapper(awaitable) for awaitable in awaitables),
         return_exceptions=return_exceptions,
     )
 
@@ -303,7 +302,7 @@ class WQBSession(AutoAuthSession):
         """
         if not isinstance(wqb_auth, HTTPBasicAuth):
             wqb_auth = HTTPBasicAuth(*wqb_auth)
-        kwargs["auth"] = wqb_auth
+        kwargs['auth'] = wqb_auth
         super().__init__(
             POST,
             URL_AUTHENTICATION,
@@ -336,7 +335,7 @@ class WQBSession(AutoAuthSession):
         """
         `wqb_auth`
         """
-        return self.kwargs["auth"]
+        return self.kwargs['auth']
 
     @wqb_auth.setter
     def wqb_auth(
@@ -348,12 +347,12 @@ class WQBSession(AutoAuthSession):
         """
         if not isinstance(wqb_auth, HTTPBasicAuth):
             wqb_auth = HTTPBasicAuth(*wqb_auth)
-        self.kwargs["auth"] = wqb_auth
+        self.kwargs['auth'] = wqb_auth
 
     def get_authentication(
         self,
         *args,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         """
@@ -384,7 +383,7 @@ class WQBSession(AutoAuthSession):
         resp = self.get(url, *args, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.get_authentication(...) [",
                         f"    {url}",
@@ -397,7 +396,7 @@ class WQBSession(AutoAuthSession):
     def post_authentication(
         self,
         *args,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         """
@@ -428,7 +427,7 @@ class WQBSession(AutoAuthSession):
         resp = self.post(url, *args, auth=self.wqb_auth, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.post_authentication(...) [",
                         f"    {url}",
@@ -441,7 +440,7 @@ class WQBSession(AutoAuthSession):
     def delete_authentication(
         self,
         *args,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         """
@@ -472,7 +471,7 @@ class WQBSession(AutoAuthSession):
         resp = self.delete(url, *args, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.delete_authentication(...) [",
                         f"    {url}",
@@ -485,7 +484,7 @@ class WQBSession(AutoAuthSession):
     def head_authentication(
         self,
         *args,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         """
@@ -516,7 +515,7 @@ class WQBSession(AutoAuthSession):
         resp = self.head(url, *args, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.head_authentication(...) [",
                         f"    {url}",
@@ -529,7 +528,7 @@ class WQBSession(AutoAuthSession):
     def search_operators(
         self,
         *args,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         """
@@ -560,7 +559,7 @@ class WQBSession(AutoAuthSession):
         resp = self.get(url, *args, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.search_operators(...) [",
                         f"    {url}",
@@ -574,7 +573,7 @@ class WQBSession(AutoAuthSession):
         self,
         dataset_id: str,
         *args,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         """
@@ -608,7 +607,7 @@ class WQBSession(AutoAuthSession):
         resp = self.get(url, *args, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.locate_dataset(...) [",
                         f"    {url}",
@@ -636,7 +635,7 @@ class WQBSession(AutoAuthSession):
         limit: int = 50,
         offset: int = 0,
         others: Iterable[str] | None = None,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         limit = min(max(limit, 1), 50)
@@ -654,24 +653,24 @@ class WQBSession(AutoAuthSession):
         if theme is not None:
             params.append(f"theme={'true' if theme else 'false'}")
         if coverage is not None:
-            params.append(coverage.to_params("coverage"))
+            params.append(coverage.to_params('coverage'))
         if value_score is not None:
-            params.append(value_score.to_params("valueScore"))
+            params.append(value_score.to_params('valueScore'))
         if alpha_count is not None:
-            params.append(alpha_count.to_params("alphaCount"))
+            params.append(alpha_count.to_params('alphaCount'))
         if user_count is not None:
-            params.append(user_count.to_params("userCount"))
+            params.append(user_count.to_params('userCount'))
         if order is not None:
             params.append(f"order={order}")
         params.append(f"limit={limit}")
         params.append(f"offset={offset}")
         if others is not None:
             params.extend(others)
-        url = URL_DATASETS + "?" + "&".join(params)
+        url = URL_DATASETS + '?' + '&'.join(params)
         resp = self.get(url, *args, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.search_datasets_limited(...) [",
                         f"    {url}",
@@ -689,7 +688,7 @@ class WQBSession(AutoAuthSession):
         *args,
         limit: int = 50,
         offset: int = 0,
-        log: str | None = "",
+        log: str | None = '',
         log_gap: int = 100,
         **kwargs,
     ) -> Generator[Response, None, None]:
@@ -697,7 +696,7 @@ class WQBSession(AutoAuthSession):
             log_gap = 0
         count = self.search_datasets_limited(
             region, delay, universe, *args, limit=1, offset=offset, log=log, **kwargs
-        ).json()["count"]
+        ).json()['count']
         offsets = range(offset, count, limit)
         if log is not None:
             self.logger.info(f"{self}.search_datasets(...) [start {offsets}]: {log}")
@@ -724,14 +723,14 @@ class WQBSession(AutoAuthSession):
         self,
         field_id: str,
         *args,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         url = URL_DATAFIELDS_FIELDID.format(field_id)
         resp = self.get(url, *args, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.locate_field(...) [",
                         f"    {url}",
@@ -760,7 +759,7 @@ class WQBSession(AutoAuthSession):
         limit: int = 50,
         offset: int = 0,
         others: Iterable[str] | None = None,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         limit = min(max(limit, 1), 50)
@@ -780,24 +779,24 @@ class WQBSession(AutoAuthSession):
         if theme is not None:
             params.append(f"theme={'true' if theme else 'false'}")
         if coverage is not None:
-            params.append(coverage.to_params("coverage"))
+            params.append(coverage.to_params('coverage'))
         if type is not None:
             params.append(f"type={type}")
         if alpha_count is not None:
-            params.append(alpha_count.to_params("alphaCount"))
+            params.append(alpha_count.to_params('alphaCount'))
         if user_count is not None:
-            params.append(user_count.to_params("userCount"))
+            params.append(user_count.to_params('userCount'))
         if order is not None:
             params.append(f"order={order}")
         params.append(f"limit={limit}")
         params.append(f"offset={offset}")
         if others is not None:
             params.extend(others)
-        url = URL_DATAFIELDS + "?" + "&".join(params)
+        url = URL_DATAFIELDS + '?' + '&'.join(params)
         resp = self.get(url, *args, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.search_fields_limited(...) [",
                         f"    {url}",
@@ -815,7 +814,7 @@ class WQBSession(AutoAuthSession):
         *args,
         limit: int = 50,
         offset: int = 0,
-        log: str | None = "",
+        log: str | None = '',
         log_gap: int = 100,
         **kwargs,
     ) -> Generator[Response, None, None]:
@@ -823,7 +822,7 @@ class WQBSession(AutoAuthSession):
             log_gap = 0
         count = self.search_fields_limited(
             region, delay, universe, *args, limit=1, offset=offset, log=log, **kwargs
-        ).json()["count"]
+        ).json()['count']
         offsets = range(offset, count, limit)
         if log is not None:
             self.logger.info(f"{self}.search_fields(...) [start {offsets}]: {log}")
@@ -1063,7 +1062,7 @@ class WQBSession(AutoAuthSession):
         limit: int = 100,
         offset: int = 0,
         others: Iterable[str] | None = None,
-        log: str | None = "",
+        log: str | None = '',
         **kwargs,
     ) -> Response:
         limit = min(max(limit, 1), 100)
@@ -1078,19 +1077,15 @@ class WQBSession(AutoAuthSession):
         if language is not None:
             params.append(f"settings.language={language}")
         if date_created is not None:
-            params.append(date_created.to_params("dateCreated"))
+            params.append(date_created.to_params('dateCreated'))
         if favorite is not None:
             params.append(f"favorite={'true' if favorite else 'false'}")
         if date_submitted is not None:
-            params.append(date_submitted.to_params("dateSubmitted"))
+            params.append(date_submitted.to_params('dateSubmitted'))
         if start_date is not None:
-            params.append(start_date.to_params("os.startDate"))
+            params.append(start_date.to_params('os.startDate'))
         if status is not None:
-            params.append(
-                f"status={status}"
-                if status == "UNSUBMITTED"
-                else f"status!=UNSUBMITTED"
-            )
+            params.append(f"status={status}")
         if category is not None:
             params.append(f"category={category}")
         if color is not None:
@@ -1108,11 +1103,11 @@ class WQBSession(AutoAuthSession):
         if delay is not None:
             params.append(f"settings.delay={delay}")
         if decay is not None:
-            params.append(decay.to_params("settings.decay"))
+            params.append(decay.to_params('settings.decay'))
         if neutralization is not None:
             params.append(f"settings.neutralization={neutralization}")
         if truncation is not None:
-            params.append(truncation.to_params("settings.truncation"))
+            params.append(truncation.to_params('settings.truncation'))
         if unit_handling is not None:
             params.append(f"settings.unitHandling={unit_handling}")
         if nan_handling is not None:
@@ -1120,55 +1115,55 @@ class WQBSession(AutoAuthSession):
         if pasteurization is not None:
             params.append(f"settings.pasteurization={pasteurization}")
         if sharpe is not None:
-            params.append(sharpe.to_params("is.sharpe"))
+            params.append(sharpe.to_params('is.sharpe'))
         if returns is not None:
-            params.append(returns.to_params("is.returns"))
+            params.append(returns.to_params('is.returns'))
         if pnl is not None:
-            params.append(pnl.to_params("is.pnl"))
+            params.append(pnl.to_params('is.pnl'))
         if turnover is not None:
-            params.append(turnover.to_params("is.turnover"))
+            params.append(turnover.to_params('is.turnover'))
         if drawdown is not None:
-            params.append(drawdown.to_params("is.drawdown"))
+            params.append(drawdown.to_params('is.drawdown'))
         if margin is not None:
-            params.append(margin.to_params("is.margin"))
+            params.append(margin.to_params('is.margin'))
         if fitness is not None:
-            params.append(fitness.to_params("is.fitness"))
+            params.append(fitness.to_params('is.fitness'))
         if book_size is not None:
-            params.append(book_size.to_params("is.bookSize"))
+            params.append(book_size.to_params('is.bookSize'))
         if long_count is not None:
-            params.append(long_count.to_params("is.longCount"))
+            params.append(long_count.to_params('is.longCount'))
         if short_count is not None:
-            params.append(short_count.to_params("is.shortCount"))
+            params.append(short_count.to_params('is.shortCount'))
         if sharpe60 is not None:
-            params.append(sharpe60.to_params("os.sharpe60"))
+            params.append(sharpe60.to_params('os.sharpe60'))
         if sharpe125 is not None:
-            params.append(sharpe125.to_params("os.sharpe125"))
+            params.append(sharpe125.to_params('os.sharpe125'))
         if sharpe250 is not None:
-            params.append(sharpe250.to_params("os.sharpe250"))
+            params.append(sharpe250.to_params('os.sharpe250'))
         if sharpe500 is not None:
-            params.append(sharpe500.to_params("os.sharpe500"))
+            params.append(sharpe500.to_params('os.sharpe500'))
         if os_is_sharpe_ratio is not None:
-            params.append(os_is_sharpe_ratio.to_params("os.osISSharpeRatio"))
+            params.append(os_is_sharpe_ratio.to_params('os.osISSharpeRatio'))
         if pre_close_sharpe is not None:
-            params.append(pre_close_sharpe.to_params("os.preCloseSharpe"))
+            params.append(pre_close_sharpe.to_params('os.preCloseSharpe'))
         if pre_close_sharpe_ratio is not None:
-            params.append(pre_close_sharpe_ratio.to_params("os.preCloseSharpeRatio"))
+            params.append(pre_close_sharpe_ratio.to_params('os.preCloseSharpeRatio'))
         if self_correlation is not None:
-            params.append(self_correlation.to_params("is.selfCorrelation"))
+            params.append(self_correlation.to_params('is.selfCorrelation'))
         if prod_correlation is not None:
-            params.append(prod_correlation.to_params("is.prodCorrelation"))
+            params.append(prod_correlation.to_params('is.prodCorrelation'))
         if order is not None:
             params.append(f"order={order}")
         params.append(f"limit={limit}")
         params.append(f"offset={offset}")
         if others is not None:
             params.extend(others)
-        url = URL_USERS_SELF_ALPHAS + "?" + "&".join(params)
-        url = url.replace("+", "%2B")  # TODO: Can be improved.
+        url = URL_USERS_SELF_ALPHAS + '?' + '&'.join(params)
+        url = url.replace('+', '%2B')  # TODO: Can be improved.
         resp = self.get(url, *args, **kwargs)
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.filter_alphas_limited(...) [",
                         f"    {url}",
@@ -1178,220 +1173,40 @@ class WQBSession(AutoAuthSession):
             )
         return resp
 
-    def _get_alpha_count(self, retries: int, delay: float, *args, **kwargs) -> int:
-        """内部帮助函数：带重试地获取 alpha 总数"""
-        effective_delay = delay
-        for attempt in range(retries):
-            try:
-                resp = self.filter_alphas_limited(
-                    *args, limit=1, offset=0, log=None, **kwargs
-                )
-                if resp and resp.status_code == 200:
-                    try:
-                        count = resp.json().get("count")
-                        if isinstance(count, int) and count >= 0:
-                            return count  # 成功获取并返回 count
-                        else:
-                            self.logger.warning(
-                                f"_get_alpha_count: Invalid 'count' value ({count}). Attempt {attempt+1}/{retries}."
-                            )
-                    except json.JSONDecodeError as e:
-                        self.logger.warning(
-                            f"_get_alpha_count: JSONDecodeError. Attempt {attempt+1}/{retries}. Text: {resp.text}. Error: {e}"
-                        )
-                else:
-                    status = resp.status_code if resp else "None"
-                    self.logger.warning(
-                        f"_get_alpha_count: Request failed. Status: {status}. Attempt {attempt+1}/{retries}"
-                    )
-                    if not (
-                        resp and 500 <= resp.status_code < 600
-                    ):  # 非服务器错误不重试
-                        break
-            except (RequestException, Exception) as e:
-                self.logger.warning(
-                    f"_get_alpha_count: Exception occurred. Attempt {attempt+1}/{retries}. Error: {e}"
-                )
-
-            # 如果需要重试
-            if attempt < retries - 1:
-                time.sleep(effective_delay)
-                effective_delay = min(effective_delay * 2, 30)
-            else:
-                self.logger.error(f"_get_alpha_count: Failed after {retries} attempts.")
-                return -1  # 返回无效值表示失败
-
-        return -1  # 如果循环结束仍未成功
-
-    def _get_alpha_page(
-        self,
-        page_idx: int,
-        total_pages: int,
-        retries: int,
-        delay: float,
-        *args,
-        **kwargs,
-    ) -> Optional[Response]:
-        """内部帮助函数：带重试地获取单个分页的 alpha 响应"""
-        effective_delay = delay
-        for attempt in range(retries):
-            resp = None  # 在每次尝试开始时重置 resp
-            try:
-                # 1. 调用底层方法获取分页
-                resp = self.filter_alphas_limited(*args, **kwargs)
-
-                # 2. 检查是否成功获取响应且状态码为 200
-                if resp and resp.status_code == 200:
-                    try:
-                        # 3. 尝试解析 JSON (成功解析即视为完全成功)
-                        resp.json()
-                        # self.logger.debug(f"Successfully fetched and validated page {page_idx}/{total_pages} on attempt {attempt+1}")
-                        return resp  # *** 成功，直接返回 ***
-
-                    except json.JSONDecodeError as e:
-                        # JSON 解析失败，记录错误，继续循环重试
-                        last_error_info = f"Attempt {attempt+1}/{retries}: Status 200 but JSONDecodeError: {e}. Text: {resp.text[:100]}..."
-                        self.logger.warning(
-                            f"_get_alpha_page: Page {page_idx}/{total_pages} {last_error_info}"
-                        )
-                        # 不 return，让循环继续
-
-                # 4. 检查是否为不可重试的错误 (非 200 且非 5xx)
-                elif resp and not (500 <= resp.status_code < 600):
-                    # 例如 4xx 错误或其他非预期状态码
-                    last_error_info = f"Attempt {attempt+1}/{retries}: Received non-retryable status {resp.status_code}"
-                    self.logger.warning(
-                        f"_get_alpha_page: Page {page_idx}/{total_pages} {last_error_info}. Skipping page."
-                    )
-                    return None  # *** 不可重试，直接返回 None 放弃 ***
-
-                # 5. 处理其他情况（resp 为 None，或状态码为 5xx） - 这些都需要重试
-                else:
-                    status = resp.status_code if resp else "None"
-                    last_error_info = (
-                        f"Attempt {attempt+1}/{retries}: Status {status} (Needs retry)"
-                    )
-                    self.logger.warning(
-                        f"_get_alpha_page: Page {page_idx}/{total_pages} {last_error_info}"
-                    )
-                    # 不 return，让循环继续重试
-
-            # 6. 捕获网络或底层调用异常
-            except RequestException as e:
-                last_error_info = f"Attempt {attempt+1}/{retries}: Network Error: {e}"
-                self.logger.warning(
-                    f"_get_alpha_page: Page {page_idx}/{total_pages} {last_error_info}"
-                )
-                # 不 return，让循环继续重试
-            except Exception as e:
-                last_error_info = (
-                    f"Attempt {attempt+1}/{retries}: Unexpected Error: {e}"
-                )
-                self.logger.error(
-                    f"_get_alpha_page: Page {page_idx}/{total_pages} {last_error_info}",
-                    exc_info=True,
-                )
-                # 不 return，让循环继续重试
-
-            # --- 执行到这里说明当前尝试失败，需要等待后重试 (如果还有次数) ---
-            if attempt < retries - 1:
-                self.logger.info(
-                    f"_get_alpha_page: Retrying page {page_idx}/{total_pages} in {effective_delay:.1f} seconds..."
-                )
-                time.sleep(effective_delay)  # 同步方法用 time.sleep
-                effective_delay = min(effective_delay * 2, 15)
-            # else: # 最后一次尝试也会在循环结束后处理
-
-        # --- 循环结束 ---
-        # 如果循环正常结束（意味着所有尝试都失败了），记录最终错误并返回 None
-        self.logger.error(
-            f"_get_alpha_page: Failed to get page {page_idx}/{total_pages} after {retries} attempts. Last status/error: {last_error_info}. Skipping page."
-        )
-        return None
-
     def filter_alphas(
         self,
         *args,
         limit: int = 100,
         offset: int = 0,
-        log: str | None = "",
+        log: str | None = '',
         log_gap: int = 100,
-        page_retries: int = 3,
-        page_retry_delay: float = 1.0,
-        count_retries: int = 5,
-        count_retry_delay: float = 2.0,
         **kwargs,
     ) -> Generator[Response, None, None]:
-        """
-        筛选 Alphas（简化版），使用内部帮助函数处理重试。
-        按需生成 (yield) 每个成功获取的分页响应。
-        """
         if log is None:
             log_gap = 0
-        limit = min(max(limit, 1), 100)  # 确保 limit 在有效范围
-        offset = max(offset, 0)  # 确保 offset 非负
-
-        # 1. 获取总数 (带重试)
-        self.logger.info(f"{self}.filter_alphas: Attempting to get alpha count...")
-        count = self._get_alpha_count(count_retries, count_retry_delay, *args, **kwargs)
-
-        if count < 0:
-            self.logger.error(
-                f"{self}.filter_alphas: Failed to get valid alpha count. Returning empty generator."
-            )
-            return  # 返回空生成器
-
-        if count == 0:
-            self.logger.info(f"{self}.filter_alphas: Found 0 alphas matching criteria.")
-            return  # 返回空生成器
-
-        # 2. 计算分页信息
+        count = self.filter_alphas_limited(
+            *args, limit=1, offset=offset, log=log, **kwargs
+        ).json()['count']
         offsets = range(offset, count, limit)
-        total_pages = len(offsets)
-
-        if total_pages == 0 and count > 0 and offset < count:
-            # 特殊情况：count 小于 limit，但大于 offset，应该有1页
-            offsets = [offset]
-            total_pages = 1
-
         if log is not None:
-            self.logger.info(
-                f"{self}.filter_alphas(...) [Processing {count} items across {total_pages} pages starting from offset {offset}]: {log}"
-            )
-
-        # 3. 迭代获取并 yield 每个分页 (带重试)
-        for idx, current_offset in enumerate(offsets, start=1):
-            # 准备传递给分页获取函数的日志参数
-            page_log = (
-                f"{idx}/{total_pages} = {int(100*idx/total_pages)}%"
-                if log_gap != 0 and idx % log_gap == 0
-                else None
-            )
-
-            # 调用内部帮助函数获取分页响应 (带重试)
-            page_resp = self._get_alpha_page(
-                page_idx=idx,
-                total_pages=total_pages,
-                retries=page_retries,
-                delay=page_retry_delay,
+            self.logger.info(f"{self}.filter_alphas(...) [start {offsets}]: {log}")
+        total = len(offsets)
+        for idx, offset in enumerate(offsets, start=1):
+            yield self.filter_alphas_limited(
                 *args,
-                limit=limit,  # 传入 limit
-                offset=current_offset,  # 传入当前 offset
-                log=page_log,  # 传入日志参数 (给 filter_alphas_limited 用)
+                limit=limit,
+                offset=offset,
+                log=(
+                    f"{idx}/{total} = {int(100*idx/total)}%"
+                    if 0 != log_gap and 0 == idx % log_gap
+                    else None
+                ),
                 **kwargs,
             )
-
-            # 如果成功获取到当前分页的响应，则 yield 出去
-            if page_resp is not None:
-                yield page_resp
-            # else: # 如果获取失败 (返回 None)，则自动跳过，不 yield
-
         if log is not None:
-            self.logger.info(
-                f"{self}.filter_alphas(...) [Finished yielding pages]: {log}"
-            )
+            self.logger.info(f"{self}.filter_alphas(...) [finish {offsets}]: {log}")
 
-    async def patch_properties(
+    def patch_properties(
         self,
         alpha_id: str,
         *args,
@@ -1402,194 +1217,45 @@ class WQBSession(AutoAuthSession):
         tags: str | Iterable[str] | Null | None = None,
         color: Color | Null | None = None,
         regular_description: str | Null | None = None,
-        log: str | None = "",  # 用户提供的日志上下文信息
-        # 新增的重试参数 (设为仅关键字参数以增加清晰度)
-        max_retries: int = 3,
-        initial_retry_delay: float = 1.0,
-        backoff_factor: float = 2.0,
-        retry_status_codes: Iterable[int] = (
-            429,
-            500,
-            502,
-            503,
-            504,
-        ),  # 可重试的HTTP状态码
-        retry_exceptions: tuple[Type[BaseException], ...] = (  # 可重试的异常类型
-            requests.exceptions.ConnectionError,
-            requests.exceptions.Timeout,
-            requests.exceptions.ChunkedEncodingError,
-        ),
+        log: str | None = '',
         **kwargs,
-    ) -> Response | None:
+    ) -> Response:
         url = URL_ALPHAS_ALPHAID.format(alpha_id)
         properties = {}
         if favorite is not None:
-            properties["favorite"] = favorite
+            properties['favorite'] = favorite
         if hidden is not None:
-            properties["hidden"] = hidden
+            properties['hidden'] = hidden
         if name is not None:
-            properties["name"] = None if isinstance(name, Null) else name
+            properties['name'] = None if isinstance(name, Null) else name
         if category is not None:
-            properties["category"] = None if isinstance(category, Null) else category
+            properties['category'] = None if isinstance(category, Null) else category
         if tags is not None:
-            properties["tags"] = (
+            properties['tags'] = (
                 []
                 if isinstance(tags, Null)
                 else [tags] if isinstance(tags, str) else list(tags)
             )
         if color is not None:
-            # print(f"color: {color}, Null: {Null} -- isinstance(color, Null) == {isinstance(color, Null)}")
-            properties["color"] = None if isinstance(color, Null) else color
+            properties['color'] = None if isinstance(color, Null) else color
         if regular_description is not None:
-            properties["regular"] = {}
-            properties["regular"]["description"] = (
+            properties['regular'] = {}
+            properties['regular']['description'] = (
                 None if isinstance(regular_description, Null) else regular_description
             )
-
-        current_delay = initial_retry_delay
-        final_resp: Response | None = None
-
-        for attempt in range(max_retries + 1):  # 0次重试意味着总共尝试1次
-            try:
-                # self.patch 是同步方法，使用 asyncio.to_thread 在线程池中运行
-                final_resp = await asyncio.to_thread(
-                    self.patch, url, json=properties, *args, **kwargs
-                )
-
-                if final_resp.status_code < 400:  # 例如 2xx 表示成功
-                    if log is not None and log != "":  # 仅在提供了有效log时记录成功日志
-                        self.logger.info(
-                            f"{self}.patch_properties(alpha_id={alpha_id}) successful on attempt {attempt + 1}. "
-                            f"Status: {final_resp.status_code}. Context: {log}"
-                        )
-                        print(
-                            f"{self}.patch_properties(alpha_id={alpha_id}) successful on attempt {attempt + 1}. "
-                            f"Status: {final_resp.status_code}. Context: {log}"
-                        )
-                    return final_resp
-
-                if final_resp.status_code in retry_status_codes:
-                    if attempt < max_retries:
-                        self.logger.warning(
-                            f"{self}.patch_properties(alpha_id={alpha_id}) attempt {attempt + 1}/{max_retries + 1} failed with status {final_resp.status_code}. "
-                            f"Retrying in {current_delay:.2f}s. URL: {url}. Context: {log}"
-                        )
-                        print(
-                            f"{self}.patch_properties(alpha_id={alpha_id}) attempt {attempt + 1}/{max_retries + 1} failed with status {final_resp.status_code}. "
-                            f"Retrying in {current_delay:.2f}s. URL: {url}. Context: {log}"
-                        )
-                        await asyncio.sleep(current_delay)
-                        current_delay *= backoff_factor
-                    else:  # 达到最大重试次数
-                        self.logger.error(
-                            f"{self}.patch_properties(alpha_id={alpha_id}) failed after {max_retries + 1} attempts. "
-                            f"Last status: {final_resp.status_code}. URL: {url}. Response: {final_resp.text[:200]}. Context: {log}"
-                        )
-                        print(
-                            f"{self}.patch_properties(alpha_id={alpha_id}) failed after {max_retries + 1} attempts. "
-                            f"Last status: {final_resp.status_code}. URL: {url}. Response: {final_resp.text[:200]}. Context: {log}"
-                        )
-                        # 跳出循环，将返回最后的 final_resp
-                else:  # 不可重试的HTTP错误 (例如 400, 401, 403, 404)
-                    self.logger.error(
-                        f"{self}.patch_properties(alpha_id={alpha_id}) failed with non-retryable status {final_resp.status_code}. "
-                        f"URL: {url}. Response: {final_resp.text[:200]}. Context: {log}"
-                    )
-                    print(
-                        f"{self}.patch_properties(alpha_id={alpha_id}) failed with non-retryable status {final_resp.status_code}. "
-                        f"URL: {url}. Response: {final_resp.text[:200]}. Context: {log}"
-                    )
-                    return final_resp  # 立即返回
-
-            except retry_exceptions as e:
-                if attempt < max_retries:
-                    self.logger.warning(
-                        f"{self}.patch_properties(alpha_id={alpha_id}) attempt {attempt + 1}/{max_retries + 1} failed with {type(e).__name__}: {e}. "
-                        f"Retrying in {current_delay:.2f}s. URL: {url}. Context: {log}"
-                    )
-                    print(
-                        f"{self}.patch_properties(alpha_id={alpha_id}) attempt {attempt + 1}/{max_retries + 1} failed with {type(e).__name__}: {e}. "
-                        f"Retrying in {current_delay:.2f}s. URL: {url}. Context: {log}"
-                    )
-                    await asyncio.sleep(current_delay)
-                    current_delay *= backoff_factor
-                else:  # 达到最大重试次数
-                    self.logger.error(
-                        f"{self}.patch_properties(alpha_id={alpha_id}) failed after {max_retries + 1} attempts due to {type(e).__name__}: {e}. "
-                        f"URL: {url}. Context: {log}"
-                    )
-                    print(
-                        f"{self}.patch_properties(alpha_id={alpha_id}) failed after {max_retries + 1} attempts due to {type(e).__name__}: {e}. "
-                        f"URL: {url}. Context: {log}"
-                    )
-                    final_resp = None  # 表示因异常而失败，没有响应对象
-                    break  # 跳出循环
-            except Exception as e:  # 捕获其他所有未预料到的异常
-                self.logger.exception(  # .exception 会记录堆栈信息
-                    f"{self}.patch_properties(alpha_id={alpha_id}) encountered an unexpected error on attempt {attempt + 1}. "
-                    f"URL: {url}. Context: {log}"
-                )
-                print(  # .exception 会记录堆栈信息
-                    f"{self}.patch_properties(alpha_id={alpha_id}) encountered an unexpected error on attempt {attempt + 1}. "
-                    f"URL: {url}. Context: {log}"
-                )
-                final_resp = None
-                break  # 跳出循环
-
-        # 如果循环是因为达到最大重试次数而结束（且之前没有成功或提前返回）
-        if final_resp and final_resp.status_code >= 400:
-            if log is not None and log != "":  # 仅在提供了有效log时记录原始日志信息
-                self.logger.error(  # 补充原始log参数中的上下文信息
-                    "\n".join(
-                        (
-                            f"{self}.patch_properties(...) [FAILED after all retries for HTTP error]",
-                            f"    alpha_id: {alpha_id}",
-                            f"    url: {url}",
-                            f"    properties: {properties}",
-                            f"    last_status: {final_resp.status_code}",
-                            f"    last_response_text: {final_resp.text[:200]}",
-                            f"] Original Context: {log}",
-                        )
+        resp = self.patch(url, json=properties, *args, **kwargs)
+        if log is not None:
+            self.logger.info(
+                '\n'.join(
+                    (
+                        f"{self}.patch_properties(...) [",
+                        f"    {url}",
+                        f"    {properties}",
+                        f"]: {log}",
                     )
                 )
-                print(  # 补充原始log参数中的上下文信息
-                    "\n".join(
-                        (
-                            f"{self}.patch_properties(...) [FAILED after all retries for HTTP error]",
-                            f"    alpha_id: {alpha_id}",
-                            f"    url: {url}",
-                            f"    properties: {properties}",
-                            f"    last_status: {final_resp.status_code}",
-                            f"    last_response_text: {final_resp.text[:200]}",
-                            f"] Original Context: {log}",
-                        )
-                    )
-                )
-        elif not final_resp and (attempt == max_retries):  # 因异常耗尽重试次数
-            if log is not None and log != "":
-                self.logger.error(
-                    "\n".join(
-                        (
-                            f"{self}.patch_properties(...) [FAILED after all retries due to exception]",
-                            f"    alpha_id: {alpha_id}",
-                            f"    url: {url}",
-                            f"    properties: {properties}",
-                            f"] Original Context: {log}",
-                        )
-                    )
-                )
-                print(
-                    "\n".join(
-                        (
-                            f"{self}.patch_properties(...) [FAILED after all retries due to exception]",
-                            f"    alpha_id: {alpha_id}",
-                            f"    url: {url}",
-                            f"    properties: {properties}",
-                            f"] Original Context: {log}",
-                        )
-                    )
-                )
-        return final_resp
+            )
+        return resp
 
     async def retry(
         self,
@@ -1597,7 +1263,7 @@ class WQBSession(AutoAuthSession):
         url: str,
         *args,
         max_tries: int | Iterable[Any] = itertools.repeat(None),
-        max_key_errors: int = 5,
+        max_key_errors: int = 1,
         max_value_errors: int = 1,
         delay_key_error: float = 2.0,
         delay_value_error: float = 2.0,
@@ -1605,14 +1271,9 @@ class WQBSession(AutoAuthSession):
         on_finish: Callable[[dict[str, Any]], None] | None = None,
         on_success: Callable[[dict[str, Any]], None] | None = None,
         on_failure: Callable[[dict[str, Any]], None] | None = None,
-        log: str | None = None,
-        sim_count: int = 0,
-        alpha_id: str | None = None,
-        is_submit: bool = False,
-        got_201: List[bool] | None = None,
+        log: str | None = '',
         **kwargs,
     ) -> Coroutine[None, None, Response | None]:
-        # print("retry 开始")  # 添加
         if isinstance(max_tries, int):
             max_tries = range(max_tries)
         tries = 0
@@ -1623,62 +1284,22 @@ class WQBSession(AutoAuthSession):
             self.logger.info(f"{self}.retry(...) [start {max_tries}]: {log}")
         if on_start is not None:
             on_start(locals())
-        r_times = 1
-        k_times = 1
-        v_times = 1
-        s_times = 1
         for tries, _ in enumerate(max_tries, start=1):
-            resp = self.request(
-                method, url, alpha_id=alpha_id, max_tries=80, log=None, *args, **kwargs
-            )
-            # print("####################################################################################", max_tries, tries)
-            if resp and is_submit:
-                try:
-                    print(resp)
-                    print(f"Response Status Code: {resp.status_code}")
-                    # print(f"Response Headers: {resp.headers}")
-                    # print(f"Response Text: '{resp.text}'")
-                    if resp.status_code == 201:
-                        got_201[0] = True
-                        await asyncio.sleep(s_times * 2)
-                        s_times += 1
-                        continue
-                    elif resp.status_code == 200:
-                        print(resp.json())
-                        return resp
-                except requests.JSONDecodeError as e:
-                    print(e)
-            elif is_submit:
-                print("Submitting: No resp")
+            resp = self.request(method, url, *args, **kwargs)
             try:
-                # if resp:
-                #     print(f"resp: {resp.json()}")
-                # else:
-                #     print("No resp")
-                await asyncio.sleep(float(resp.headers[RETRY_AFTER]) * r_times)
-                r_times *= 2
-                # print("waiting...")
-
+                await asyncio.sleep(float(resp.headers[RETRY_AFTER]))
             except KeyError as e:
-                # print(f"KeyError: {e}")
-                if resp.status_code == 429:
-                    # 情况 A: 是 429 错误导致 Header 缺失
-                    key_errors += 1
-                    print(f"{resp.status_code}, key_error={key_errors}")
-                    if max_key_errors <= key_errors:
-                        if log is not None:
-                            self.logger.info(
-                                f"{self}.retry(...) [{key_errors} key_errors]: {log}"
-                            )
-                        await asyncio.sleep(delay_key_error * k_times)
-                        k_times *= 2
-                        continue
-                if on_success is not None:
-                    on_success(locals())
-                break
-
+                key_errors += 1
+                if max_key_errors <= key_errors:
+                    if log is not None:
+                        self.logger.info(
+                            f"{self}.retry(...) [{key_errors} key_errors]: {log}"
+                        )
+                    if on_success is not None:
+                        on_success(locals())
+                    break
+                await asyncio.sleep(delay_key_error)
             except ValueError as e:
-                print(f"ValueError: {e}")
                 value_errors += 1
                 if max_value_errors <= value_errors:
                     if log is not None:
@@ -1688,39 +1309,33 @@ class WQBSession(AutoAuthSession):
                     if on_success is not None:
                         on_success(locals())
                     break
-                await asyncio.sleep(delay_value_error * v_times)
-                v_times *= 2
+                await asyncio.sleep(delay_value_error)
         else:
-            print("in retry")
-            if alpha_id:
-                self.logger.warning(
-                    "\n".join(
-                        (
-                            alpha_id,
-                            f"{self}.retry(...) [max {tries} tries ran out]",
-                            f"    status_code: {resp.status_code}",
-                            f"    text: {resp.text}",
-                        )
+            self.logger.warning(
+                '\n'.join(
+                    (
+                        f"{self}.retry(...) [max {tries} tries ran out]",
+                        f"self.request(method, url, *args, **kwargs):",
+                        f"    method: {method}",
+                        f"    url: {url}",
+                        f"    args: {args}",
+                        f"    kwargs: {kwargs}",
+                        f"{resp}:",
+                        f"    status_code: {resp.status_code}",
+                        f"    reason: {resp.reason}",
+                        f"    url: {resp.url}",
+                        f"    elapsed: {resp.elapsed}",
+                        f"    headers: {resp.headers}",
+                        f"    text: {resp.text}",
                     )
                 )
-            else:
-                self.logger.warning(
-                    "\n".join(
-                        (
-                            f"{self}.retry(...) [max {tries} tries ran out]",
-                            f"    status_code: {resp.status_code}",
-                            f"    text: {resp.text}",
-                        )
-                    )
-                )
+            )
             if on_failure is not None:
                 on_failure(locals())
         if log is not None:
             self.logger.info(f"{self}.retry(...) [finish {tries} tries]: {log}")
         if on_finish is not None:
             on_finish(locals())
-        # print(f"retry 结束")  # 添加
-
         return resp
 
     async def simulate(
@@ -1729,215 +1344,46 @@ class WQBSession(AutoAuthSession):
         *args,
         max_tries: int | Iterable[Any] = range(600),
         on_nolocation: Callable[[dict[str, Any]], None] | None = None,
-        log: str | None = "",
+        log: str | None = '',
         retry_log: str | None = None,
-        tags: str | None = None,
-        sim_count: int = 0,
         **kwargs,
     ) -> Coroutine[None, None, Response | None]:
-        # print("simulate 开始")   # 添加
-        resp = None
-        repeat = False
-        internal_error = False
-        unknown_fail = False
-        sleep_for_internal_error = 1  # 等待时间乘数，每次*2
-        # count_for_sending_email = 0
-        for tries_for_status_error in range(5):  # 如果服务器内部错误，则重试最多5次
-            if tries_for_status_error > 0:
-                internal_error = False
-                unknown_fail = False
-                print(
-                    f"Status Error: 尝试 {tries_for_status_error + 1} / 5, ({sim_count})"
+        resp = self.post(
+            URL_SIMULATIONS,
+            json=target,
+            expected=self.expected_location,
+            max_tries=60,
+            delay_unexpected=5.0,
+        )
+        try:
+            url = resp.headers[LOCATION]
+        except KeyError as e:
+            self.logger.warning(
+                '\n'.join(
+                    (
+                        f"{self}.simulate(...) [",
+                        f"    {repr(e)}",
+                        f"    {target}",
+                        f"]:",
+                        f"{resp}:",
+                        f"    status_code: {resp.status_code}",
+                        f"    reason: {resp.reason}",
+                        f"    url: {resp.url}",
+                        f"    elapsed: {resp.elapsed}",
+                        f"    headers: {resp.headers}",
+                        f"    text: {resp.text}",
+                    )
                 )
-                self.logger.info(
-                    f"Status Error: 尝试 {tries_for_status_error + 1} / 5, ({sim_count})"
-                )
-            for tries in range(
-                3
-            ):  # 如果是网络连接等外部问题，重复最多3次（实测偶尔会重复第2次，没见过超过2次的）
-                try:
-                    # print("simulate即将resp = self.post")
-                    # print(target)
-                    resp = self.post(
-                        URL_SIMULATIONS,
-                        json=target,
-                        expected=self.expected_location,
-                        max_tries=60,
-                        delay_unexpected=5.0,
-                    )
-                    # print(f"self.post 返回的 resp: {resp}")  # 添加
-                    try:
-                        url = resp.headers[LOCATION]
-                    except KeyError as e:
-                        self.logger.warning(
-                            "\n".join(
-                                (
-                                    f"{self}.simulate(...) [",
-                                    f"    {repr(e)}",
-                                    f"    {target}",
-                                    f"]:",
-                                    f"{resp}:",
-                                    f"    status_code: {resp.status_code}",
-                                    f"    reason: {resp.reason}",
-                                    f"    url: {resp.url}",
-                                    f"    elapsed: {resp.elapsed}",
-                                    f"    headers: {resp.headers}",
-                                    f"    text: {resp.text}",
-                                )
-                            )
-                        )
-                        if on_nolocation is not None:
-                            on_nolocation(locals())
-                        return None
-                    # print(f"url: {url}")
-                    # print("即将调用 self.retry")  # 添加
-                    resp = await self.retry(
-                        GET,
-                        url,
-                        *args,
-                        max_tries=max_tries,
-                        log=retry_log,
-                        sim_count=sim_count,
-                        **kwargs,
-                    )
-                    break
-                except requests.exceptions.ConnectionError as e:
-                    # if "Remote end closed connection without response" in str(e):
-                    print(e, f"try {tries + 1} / 3 ({sim_count})")
-                    repeat = True
-                    if tries == 2:
-                        print(f"{url}({sim_count}): 3次连接终止，放弃本组回测。")
-                        self.logger.info(
-                            f"{url}({sim_count}): 3次连接终止，放弃本组回测。"
-                        )
-                    continue
-            if repeat:
-                print(f"simulation repeated.({sim_count})")
-                self.logger.info(f"simulation repeated.({sim_count})")
-            if resp:
-                try:
-                    resp_json = json.loads(resp.text)
-                    if tags is not None:
-                        children_ids = resp_json.get("children", [])
-                        status = resp_json.get("status")
-                        if status != "COMPLETE":
-                            print(f"statue: {status}.{url} ({sim_count})")
-                            self.logger.info(f"statue: {status}.{url} ({sim_count})")
-                        for child_id in children_ids:
-                            # 获取子模拟状态
-                            child_simulation_url = (
-                                f"{URL_SIMULATIONS}/{child_id}"  # 构建子模拟 URL
-                            )
-                            child_resp = await self.retry(
-                                GET, child_simulation_url, max_tries=range(10)
-                            )
-
-                            if child_resp:
-                                # print(f"{child_id}, ({sim_count})")
-                                try:
-                                    child_resp_json = json.loads(child_resp.text)
-                                    child_status = child_resp_json.get(
-                                        "status"
-                                    )  # 获取回测状态
-                                    alpha_id = child_resp_json.get(
-                                        "alpha"
-                                    )  # 获取 alpha_id
-
-                                    if child_status == "ERROR":
-                                        child_message = child_resp_json.get("message")
-                                        if (
-                                            child_message
-                                            == "There was an error while running the simulation. Please try again or contact BRAIN support if this problem persists."
-                                        ):
-                                            # 服务器内部错误
-                                            internal_error = True
-                                            print(
-                                                f"INTERNAL ERROR: 第{tries_for_status_error + 1}次重试失败。{url} ({sim_count})"
-                                            )
-                                            self.logger.info(
-                                                f"INTERNAL ERROR: 第{tries_for_status_error + 1}次重试失败。{url} ({sim_count})"
-                                            )
-                                            await asyncio.sleep(
-                                                20 * sleep_for_internal_error
-                                            )  # 第一次等待20秒
-                                            sleep_for_internal_error *= 2
-                                            break  # 跳出child循环，然后继续外层循环
-                                        else:  # 其他错误
-                                            print(
-                                                f"ERROR: message: {child_message} ({sim_count}), child_id: {child_id}"
-                                            )
-                                            self.logger.info(
-                                                f"ERROR: message: {child_message} ({sim_count}), child_id: {child_id}"
-                                            )
-                                            self.logger.error(f"请查看问题：\nERROR: message: {child_message} ({sim_count}), child_id: {child_id}")
-                                    if child_status == "FAIL":
-                                        unknown_fail = True
-                                        print(
-                                            f"child_status: FAIL. {url},({sim_count})"
-                                        )
-                                        self.logger.info(
-                                            f"child_status: FAIL. {url},({sim_count})"
-                                        )
-                                        await asyncio.sleep(
-                                            20 * sleep_for_internal_error
-                                        )  # 第一次等待20秒
-                                        sleep_for_internal_error *= 2
-                                        break  # 跳出child循环，然后继续外层循环
-
-                                    if alpha_id and tags:
-                                        # print(f"{alpha_id}, ({sim_count})")
-                                        patch_resp = await self.patch_properties(
-                                            alpha_id, tags=tags, log=None
-                                        )
-                                        if not (
-                                            patch_resp and patch_resp.status_code < 400
-                                        ):
-                                            print(
-                                                f"patch_properties: FAIL. {url},({sim_count}){patch_resp.status_code if patch_resp else 'No response/Exception'}"
-                                            )
-                                            self.logger.info(
-                                                f"patch_properties: FAIL. {url},({sim_count}){patch_resp.status_code if patch_resp else 'No response/Exception'}"
-                                            )
-                                except (json.JSONDecodeError, KeyError) as e:
-                                    self.logger.error(
-                                        f"Error extracting alpha_id from child simulation response: {e}"
-                                    )
-                                except Exception as e:
-                                    self.logger.error(
-                                        f"Error extracting alpha_id from child simulation response: {e}"
-                                    )
-
-                        if internal_error:
-                            if tries_for_status_error == 4:
-                                print(
-                                    f"INTERNAL ERROR: 5次重试仍然失败，跳过本组回测。({sim_count})"
-                                )
-                                self.logger.info(
-                                    f"INTERNAL ERROR: 5次重试仍然失败，跳过本组回测。({sim_count})"
-                                )
-                                self.logger.error(f"[INTERNAL ERROR❌]: 5次重试仍然失败，跳过本组回测。\n{url} ({sim_count})")
-                            continue
-                        if unknown_fail:
-                            if tries_for_status_error == 4:
-                                print(
-                                    f"UNKNOWN FAIL: 5次重试仍然失败，跳过本组回测。({sim_count})"
-                                )
-                                self.logger.info(
-                                    f"UNKNOWN FAIL: 5次重试仍然失败，跳过本组回测。({sim_count})"
-                                )
-                                self.logger.error(f"[UNKNOWN FAIL❌]: 5次重试仍然失败，跳过本组回测。\n{url} ({sim_count})")
-                            continue
-                        else:  # 如果没有错误，说明回测成功，直接跳出循环
-                            # print(f"no internal error, ({sim_count})")
-                            break
-                except (json.JSONDecodeError, KeyError) as e:
-                    self.logger.error(
-                        f"Error extracting children IDs from parent simulation response: {e}"
-                    )
-        # print(f"after patching tag, ({sim_count})")
+            )
+            if on_nolocation is not None:
+                on_nolocation(locals())
+            return None
+        resp = await self.retry(
+            GET, url, *args, max_tries=max_tries, log=retry_log, **kwargs
+        )
         if log is not None:
             self.logger.info(
-                "\n".join(
+                '\n'.join(
                     (
                         f"{self}.simulate(...) [",
                         f"    {url}",
@@ -1946,7 +1392,6 @@ class WQBSession(AutoAuthSession):
                     )
                 )
             )
-        # print("退出 simulate 函数")  # 添加
         return resp
 
     async def concurrent_simulate(
@@ -1955,9 +1400,8 @@ class WQBSession(AutoAuthSession):
         concurrency: int | asyncio.Semaphore,
         *args,
         return_exceptions: bool = False,
-        log: str | None = "",
+        log: str | None = '',
         log_gap: int = 100,
-        tags: str | None = None,
         **kwargs,
     ) -> Coroutine[None, None, list[Response | BaseException]]:
         if not isinstance(targets, Sized):
@@ -1971,11 +1415,8 @@ class WQBSession(AutoAuthSession):
             self.logger.info(
                 f"{self}.concurrent_simulate(...) [start {total}, {concurrency._value}]: {log}"
             )
-
-        # print("即将调用concurrent_await")
-        # print(targets)
         resp = await concurrent_await(
-            [
+            (
                 self.simulate(
                     target,
                     *args,
@@ -1984,12 +1425,10 @@ class WQBSession(AutoAuthSession):
                         if 0 != log_gap and 0 == idx % log_gap
                         else None
                     ),
-                    tags=tags,
-                    sim_count=idx,
                     **kwargs,
                 )
                 for idx, target in enumerate(targets, start=1)
-            ],
+            ),
             concurrency=concurrency,
             return_exceptions=return_exceptions,
         )
@@ -2003,254 +1442,26 @@ class WQBSession(AutoAuthSession):
         self,
         alpha_id: str,
         *args,
-        # http_max_tries 用于 self.retry 的 HTTP 请求重试
-        http_max_tries: int | Iterable[Any] = range(600),
-        log: str | None = "",  # 用于此方法整体的日志上下文
-        retry_log: str | None = None,  # 用于 self.retry 方法的日志上下文
-        sim_count: int = 0,
-        # 新增的应用层面重试参数 (针对 "ERROR" in check["result"])
-        app_max_retries: int = 9,  # 对应原来的 range(10) -> 10次尝试 = 9次重试
-        app_initial_delay: float = 1.0,  # 第一次应用层面重试前的延迟
-        app_backoff_factor: float = 1.5,  # 应用层面重试延迟的指数退避因子
-        expected_http_status: int = 200,  # 期望的 HTTP GET 成功状态码
+        max_tries: int | Iterable[Any] = range(600),
+        log: str | None = '',
+        retry_log: str | None = None,
         **kwargs,
     ) -> Coroutine[None, None, Response | None]:
-        final_resp: Response | None = None
         url = URL_ALPHAS_ALPHAID_CHECK.format(alpha_id)
-        app_current_delay = app_initial_delay
-
-        log_prefix = f"{self}.check(alpha_id={alpha_id}, sim_count={sim_count})"
-
-        for app_attempt in range(
-            app_max_retries + 1
-        ):  # app_max_retries=9 意味着最多10次尝试
+        resp = await self.retry(
+            GET, url, *args, max_tries=max_tries, log=retry_log, **kwargs
+        )
+        if log is not None:
             self.logger.info(
-                f"{log_prefix} app_attempt {app_attempt + 1}/{app_max_retries + 1}..."
+                '\n'.join(
+                    (
+                        f"{self}.check(...) [",
+                        f"    {url}",
+                        f"]: {log}",
+                    )
+                )
             )
-
-            # 1. 执行 HTTP GET 请求，使用 self.retry 进行网络层面的重试
-            current_attempt_resp = await self.retry(
-                GET,
-                url,
-                *args,
-                max_tries=http_max_tries,  # 传递给 self.retry
-                log=retry_log,
-                sim_count=sim_count,
-                alpha_id=alpha_id,
-                **kwargs,
-            )
-
-            # 2. 检查 HTTP 响应是否有效
-            if not current_attempt_resp:
-                self.logger.warning(
-                    f"{log_prefix} app_attempt {app_attempt + 1}: self.retry returned None."
-                )
-                if app_attempt < app_max_retries:
-                    self.logger.info(
-                        f"{log_prefix} Will sleep for {app_current_delay:.2f}s and retry app check."
-                    )
-                    await asyncio.sleep(app_current_delay)
-                    app_current_delay *= app_backoff_factor
-                    final_resp = None  # 确保 final_resp 为 None，因为此次尝试失败
-                    continue
-                else:
-                    self.logger.error(
-                        f"{log_prefix} Failed to get a response after all app_retries because self.retry returned None."
-                    )
-                    return None  # 所有尝试后仍无响应
-
-            if current_attempt_resp.status_code != expected_http_status:
-                self.logger.warning(
-                    f"{log_prefix} app_attempt {app_attempt + 1}: Received unexpected HTTP status {current_attempt_resp.status_code} (expected {expected_http_status}). "
-                    f"Response: {current_attempt_resp.text[:200]}"
-                )
-                if app_attempt < app_max_retries:
-                    # 根据需要，这里可以决定是否对非预期HTTP状态码进行应用层重试
-                    # 例如，如果 5xx 错误，可能值得重试
-                    if 500 <= current_attempt_resp.status_code < 600:
-                        self.logger.info(
-                            f"{log_prefix} Server error, will sleep for {app_current_delay:.2f}s and retry app check."
-                        )
-                        await asyncio.sleep(app_current_delay)
-                        app_current_delay *= app_backoff_factor
-                        final_resp = (
-                            current_attempt_resp  # 保存最后的响应，即使是错误响应
-                        )
-                        continue
-                    else:  # 对于其他客户端错误等，可能不值得应用层重试
-                        self.logger.error(
-                            f"{log_prefix} Non-retryable HTTP status, aborting check."
-                        )
-                        return current_attempt_resp  # 返回此错误响应
-                else:
-                    self.logger.error(
-                        f"{log_prefix} Received unexpected HTTP status after all app_retries."
-                    )
-                    return current_attempt_resp  # 返回最后的错误响应
-
-            # 如果HTTP请求成功，则将当前响应暂存为最终响应
-            final_resp = current_attempt_resp
-
-            # 3. 解析 JSON 并检查 "ERROR" 状态 (应用层面的检查)
-            try:
-                response_json = json.loads(final_resp.text)
-                # 您原有的日志记录点
-                if log is not None and log != "":
-                    self.logger.info(
-                        "\n".join(
-                            (
-                                f"{log_prefix} [Context Log for attempt {app_attempt+1}]",
-                                f"    URL: {url}",
-                                f"    Response Status: {final_resp.status_code}",
-                                f"] {log}",  # 您传入的 log 字符串
-                            )
-                        )
-                    )
-
-                is_error_in_checks = False
-                # 安全地访问嵌套的 'checks' 列表
-                checks_list = response_json.get("is", {}).get("checks", [])
-                if (
-                    not checks_list and "is" in response_json
-                ):  # 如果'is'存在但'checks'不存在或为空
-                    self.logger.warning(
-                        f"{log_prefix} app_attempt {app_attempt + 1}: 'is.checks' path not found or empty in response: {response_json}"
-                    )
-                    # 根据业务逻辑，这里可能视为一种错误或直接通过
-                    # 为保持原逻辑，如果checks为空，is_error_in_checks会是False，将跳出重试
-
-                for check_item in checks_list:
-                    if check_item.get("result") == "ERROR":
-                        self.logger.warning(
-                            f"{log_prefix} app_attempt {app_attempt + 1}: Found 'ERROR' in check: {check_item}."
-                        )
-                        is_error_in_checks = True
-                        break  # 找到一个ERROR就足够触发重试
-
-                if not is_error_in_checks:
-                    self.logger.info(
-                        f"{log_prefix} app_attempt {app_attempt + 1}: No 'ERROR' found in checks. Check successful for this attempt."
-                    )
-                    break  # 跳出应用层面的重试循环，因为当前检查通过了（没有ERROR）
-                else:  # is_error_in_checks is True
-                    if app_attempt < app_max_retries:
-                        self.logger.info(
-                            f"{log_prefix} 'ERROR' found. Will sleep for {app_current_delay:.2f}s and retry app check."
-                        )
-                        await asyncio.sleep(app_current_delay)
-                        app_current_delay *= app_backoff_factor
-                        # final_resp 已经被设为 current_attempt_resp，如果循环耗尽，它将是最后一个带ERROR的响应
-                        continue
-                    else:  # 所有应用层重试都已用完，但仍然有 ERROR
-                        self.logger.error(
-                            f"{log_prefix} 'ERROR' condition persisted after {app_max_retries + 1} app_attempts."
-                        )
-                        # final_resp 是最后一个带有ERROR的响应，将用它进行最终的 pass_test 判断
-                        break
-
-            except json.JSONDecodeError:
-                self.logger.warning(
-                    f"{log_prefix} app_attempt {app_attempt + 1}: Failed to decode JSON. Response text: {final_resp.text[:200] if final_resp else 'No response text'}"
-                )
-                if app_attempt < app_max_retries:
-                    self.logger.info(
-                        f"{log_prefix} JSON error. Will sleep for {app_current_delay:.2f}s and retry app check."
-                    )
-                    await asyncio.sleep(app_current_delay)
-                    app_current_delay *= app_backoff_factor
-                    # final_resp 已经被设为 current_attempt_resp
-                    continue
-                else:
-                    self.logger.error(
-                        f"{log_prefix} JSON decoding failed after all app_retries."
-                    )
-                    # final_resp 是最后一个无法解析的响应
-                    return final_resp  # 返回这个有问题的响应
-            except KeyError as e:
-                self.logger.warning(
-                    f"{log_prefix} app_attempt {app_attempt + 1}: KeyError accessing response data: {e}. Response JSON: {response_json if 'response_json' in locals() else 'Not parsed'}"
-                )
-                if app_attempt < app_max_retries:
-                    self.logger.info(
-                        f"{log_prefix} KeyError. Will sleep for {app_current_delay:.2f}s and retry app check."
-                    )
-                    await asyncio.sleep(app_current_delay)
-                    app_current_delay *= app_backoff_factor
-                    # final_resp 已经被设为 current_attempt_resp
-                    continue
-                else:
-                    self.logger.error(
-                        f"{log_prefix} KeyError persisted after all app_retries."
-                    )
-                    # final_resp 是最后一个导致KeyError的响应
-                    return final_resp  # 返回这个有问题的响应
-        # 应用层重试循环结束
-        else:  # 这个 else 对应 for 循环正常结束（即所有 app_attempt 都执行完毕且未被 break）
-            if app_max_retries > 0:  # 仅当有重试时，这个日志才有意义
-                self.logger.warning(
-                    f"{log_prefix} All {app_max_retries + 1} application-level retries exhausted. Last known state might contain 'ERROR'."
-                )
-
-        # 4. 最终的 pass_test 判断逻辑 (基于 final_resp)
-        if (
-            not final_resp
-        ):  # 如果循环结束时 final_resp 仍然是 None (例如所有 self.retry 都失败了)
-            self.logger.error(
-                f"{log_prefix} No valid response obtained to perform final pass/fail check."
-            )
-            return None
-
-        pass_test = True
-        try:
-            # 使用 final_resp.text 进行解析，这是最后一次成功获取（或尝试获取）的响应内容
-            response_json_final = json.loads(final_resp.text)
-            final_checks_list = response_json_final.get("is", {}).get("checks", [])
-
-            if not final_checks_list and "is" in response_json_final:
-                self.logger.info(
-                    f"{log_prefix} Final check: 'is.checks' path not found or empty for alpha_id {alpha_id}."
-                )
-                # 根据您的逻辑，如果 checks 为空，pass_test 会保持 True
-                # 如果希望空checks视为失败，则:
-                pass_test = False
-
-            for check_item in final_checks_list:
-                result = check_item.get("result")
-                if result == "FAIL" or result == "ERROR":
-                    # 您原来的打印语句，改为 logger.info 或 logger.error
-                    self.logger.info(
-                        f"{log_prefix} Final check - Alpha_id {alpha_id} has check with result '{result}': {check_item}"
-                    )
-                    pass_test = False
-
-            if pass_test:
-                # 只有当 final_checks_list 非空且所有都通过时，才算真正通过
-                if final_checks_list:
-                    self.logger.info(
-                        f"{log_prefix} Final check - Alpha_id {alpha_id} 通过检测！"
-                    )
-                else:  # 如果列表为空，但pass_test仍为True
-                    self.logger.info(
-                        f"{log_prefix} Final check - Alpha_id {alpha_id}: No checks found, but no explicit FAIL/ERROR. Considered passing by original logic."
-                    )
-            else:
-                self.logger.info(
-                    f"{log_prefix} Final check - Alpha_id {alpha_id} 未通过检测."
-                )
-
-        except json.JSONDecodeError:
-            self.logger.error(
-                f"{log_prefix} Final pass/fail check: Failed to decode JSON from final_resp. Text: {final_resp.text[:200]}"
-            )
-            # 无法解析最终响应，视为未通过检测，并返回该响应
-            return final_resp
-        except KeyError as e:
-            self.logger.error(
-                f"{log_prefix} Final pass/fail check: KeyError '{e}' accessing data in final_resp. JSON: {response_json_final if 'response_json_final' in locals() else 'Not parsed'}"
-            )
-            return final_resp  # 返回有问题的响应
-
-        return final_resp  # 返回最后处理的那个 Response 对象
+        return resp
 
     async def concurrent_check(
         self,
@@ -2258,7 +1469,7 @@ class WQBSession(AutoAuthSession):
         concurrency: int | asyncio.Semaphore,
         *args,
         return_exceptions: bool = False,
-        log: str | None = "",
+        log: str | None = '',
         log_gap: int = 100,
         **kwargs,
     ) -> Coroutine[None, None, list[Response | BaseException]]:
@@ -2283,7 +1494,6 @@ class WQBSession(AutoAuthSession):
                         if 0 != log_gap and 0 == idx % log_gap
                         else None
                     ),
-                    sim_count=idx,
                     **kwargs,
                 )
                 for idx, alpha_id in enumerate(alpha_ids, start=1)
@@ -2502,8 +1712,7 @@ class WQBSession(AutoAuthSession):
         )
 
     def get_alpha_details(self, alpha_id: str) -> Optional[Dict[str, Any]]:
-        # url = f"{URL_ALPHAS}/{alpha_id}" # 使用你定义的 URL_ALPHAS
-        url = f"{WQB_API_URL}/alphas/{alpha_id}"  # 或者直接构造
+        url = f"{URL_ALPHAS}/{alpha_id}"
         try:
             response = self._wait_get_response(url)
             return response.json()
@@ -2513,8 +1722,7 @@ class WQBSession(AutoAuthSession):
             return None
 
     def get_alpha_pnl(self, alpha_id: str) -> Optional[pd.DataFrame]:
-        # pnl_url = f"{URL_ALPHAS}/{alpha_id}/recordsets/pnl" # 使用你定义的 URL_ALPHAS
-        pnl_url = f"{WQB_API_URL}/alphas/{alpha_id}/recordsets/pnl"  # 或者直接构造
+        pnl_url = f"{URL_ALPHAS}/{alpha_id}/recordsets/pnl"
         try:
             response = self._wait_get_response(pnl_url)
             pnl_data = response.json()

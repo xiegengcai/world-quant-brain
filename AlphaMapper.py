@@ -60,8 +60,13 @@ class AlphaMapper:
         now = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
         for simulate_data in simulate_data_list:
 
+            hash_id = utils.hash(simulate_data)
+            
+            if self.is_exist(hash_id):
+                print(f'{simulate_data['regular']}已存在,hash_id={hash_id}')
+                continue
             alpha = {
-                'hash_id': simulate_data['hash_id'],
+                'hash_id': hash_id,
                 'step': step,
                 'type': simulate_data['type'],
                 'field_prefix': field_prefix,
@@ -71,6 +76,7 @@ class AlphaMapper:
                 'created_at' : now,
                 'updated_at' : now,
             }
+
             if parent_id is not None:
                 alpha['parent_id'] = parent_id
             table_data.append(alpha)
